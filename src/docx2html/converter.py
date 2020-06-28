@@ -20,6 +20,52 @@ import time
 import re
 import os
 
+class Docx2HtmlConverter():
+
+    def __init__(self):
+
+        self.document = None
+
+        self.body = '<div class="page">'
+
+        self.list_items = []
+
+        self.page = 0
+
+    def convert(self, dir_path,file):
+        """
+            dir_path = "./SOURCEDIR"
+            file = "SAMPLE.docx"
+
+            image_path will be a directory to store image files; if the directory does not exist it will be created
+        """
+
+        splitname = re.split('[. ]', file)
+        if len(splitname) > 2:
+            image_path=  ''.join(splitname[:2]) + '-images'
+        else:
+            image_path= splitname[0] + '-images'
+
+        if not os.path.isdir(image_path):
+            os.mkdir(image_path)
+
+        self.document = Document(dir_path + '/' + file)
+
+        self.__covertDocument()
+
+    def getHtml(self):
+
+        return self.body
+
+    def __covertDocument(self):
+        pass
+
+    def __detectPageBreak(self, block, type='paragraph'):
+        pass
+
+    def __
+
+
 
 
 def convert(dir_path,file):
