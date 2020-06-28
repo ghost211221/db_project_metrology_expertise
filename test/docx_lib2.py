@@ -21,6 +21,8 @@ import time
 import re
 import os
 
+
+
 def convert(dir_path,file):
     ##dir_path = "./SOURCEDIR"
     ##file = "SAMPLE.docx"
@@ -33,23 +35,26 @@ def convert(dir_path,file):
     if not os.path.isdir(image_path):
         os.mkdir(image_path)
     document = Document(dir_path + '/' + file)
-    body = ""
+    body = '<div class="page">'
     list_items = []
     pn = 1
     for block in iter_block_items(document):
+
         if isinstance(block, Paragraph):
-            print(block.text)
             for run in block.runs:
-                if 'w:br' in run._element.xml and 'type="page"' in run._element.xml:                    
+                if 'lastRenderedPageBreak' in run._element.xml:
+                    body += '</div>\n<div class="page">'
                     pn+=1
-                    print('!!','='*50,pn)
+                elif 'w:br' in run._element.xml and 'type="page"' in run._element.xml:
+                    body += '</div>\n<div class="page">'
+                    pn+=1
 
             tmp_heading_type = get_heading_type(block)
             if re.match("List\sParagraph",tmp_heading_type):
-                list_items.append("<li>" + block.text + "</li>")
+                list_items.append("<li>" + block.text + "</li>\n")
             elif not block.text.strip():
                 # переводим пустые строку документа в пустые строки
-                list_items.append("<br/>")
+                list_items.append("<br/>\n")
             else:
                 images = render_image(document,block,image_path,image_path)
                 if len(list_items) > 0:
@@ -65,7 +70,9 @@ def convert(dir_path,file):
                         outer_tag = 'p'
                     body = body + render_runs(block.runs, outer_tag)
         elif isinstance(block, Table):
-            body += render_table(block,document,image_path)
+            body += render_table(block,document,image_path, pn)
+
+    body += '</div>\n'
      
     return body
    
@@ -95,16 +102,23 @@ def table_print(block):
         for cell in row.cells:
             for paragraph in cell.paragraphs:
                 print(paragraph.text,'  ',end='')
-        print("\n")
+        # print("\n")
         
 # Modified to treat cell content as a set of blocks to process 
-def render_table(block,document,image_path):
+def render_table(block,document,image_path, pn):
     table = block
-    html = "<table class='table table-bordered' border='1'>"
+    
+    html = "<table class='table table-bordered' border='1'>\n"
     for row in table.rows:
-        html += "<tr>"
+        if 'lastRenderedPageBreak' in row._element.xml:
+            html += '</div>\n<div class="page">'
+            pn+=1
+        elif 'w:br' in row._element.xml:
+            html += '</div>\n<div class="page">'
+            pn+=1
+        html += "<tr>\n"
         for cell in row.cells:
-            html += "<td>"
+            html += "<td>\n"
             # --- 
             cbody = ""
             clist_items = []
@@ -112,7 +126,7 @@ def render_table(block,document,image_path):
                 if isinstance(cblock, Paragraph):
                     tmp_heading_type = get_heading_type(cblock)
                     if re.match("List\sParagraph",tmp_heading_type):
-                        clist_items.append("<li>" + cblock.text + "</li>")
+                        clist_items.append("<li>" + cblock.text + "</li>\n")
                     else:
                         images = render_image(document,cblock,image_path,image_path)
                         if len(clist_items) > 0:
@@ -125,9 +139,9 @@ def render_table(block,document,image_path):
                 elif isinstance(cblock, Table):
                     cbody += render_table(cblock, document, image_path)
             html += cbody + " "
-            html += "</td>"
-        html += "</tr>"
-    html += "</table>"
+            html += "</td>\n"
+        html += "</tr>\n"
+    html += "</table>\n"
     return html
     
 # Modified to use a different outer_tag if a 'Heading' style is found in the original paragraph
@@ -135,14 +149,14 @@ def render_runs(runs, outer_tag='p'):
     html = "<" + outer_tag + ">"
     for run in runs:
         html = html + run.text
-    html += "</" + outer_tag + ">"
+    html += "</" + outer_tag + ">\n"
     return html
     
 def render_list_items(items):
-    html = "<ul>"
+    html = "<ul>\n"
     for item in items:
         html += item
-    html += "</ul>"
+    html += "</ul>\n"
     return html
     
 def get_heading_type(block):
@@ -180,10 +194,10 @@ def render_image(document,par,dir_path,book_id):
             fr = open(dir_path + "/" + file_name, "wb")
             fr.write(image_part._blob)
             fr.close()
-            response += "<img border='1' src='" + dir_path + "/" + file_name + "' class='img-responsive'/>"
+            response += "<img border='1' src='" + dir_path + "/" + file_name + "' class='img-responsive'/>\n"
     return response
     
 if __name__ == '__main__':
-    s = convert('..\\files', 'init_document.docx')
+    s = convert('.', 'init_document.docx')
     with open('text.html', 'w', encoding='utf8') as f:
         f.write(s)
