@@ -131,3 +131,5 @@ dmypy.json
 # sublime project files
 metr_exp.sublime-project
 metr_exp.sublime-workspace
+
+./test/interface/test_itf/node_modules
