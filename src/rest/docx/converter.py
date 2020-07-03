@@ -82,7 +82,7 @@ class Docx2HtmlConverter():
                 tmp_heading_type = self.__get_heading_type(block)
 
                 if re.match("List\sParagraph", tmp_heading_type):
-                    self.list_items.append("<li>" + block.text + "</li>\n")
+                    self.list_items.append('<li ref="target">' + block.text + '</li>\n')
 
                 elif not block.text.strip():
                     # переводим пустые строку документа в пустые строки
@@ -192,7 +192,7 @@ class Docx2HtmlConverter():
         return response
 
     def __render_list_items(self, items):
-        html = "\t<ul>\n"
+        html = '\t<ul ref="target">\n'
         for item in items:
             html += f'\t\t{item}'
 
@@ -203,7 +203,7 @@ class Docx2HtmlConverter():
     
     def __render_runs(self, block, outer_tag='p'):
         """ Modified to use a different outer_tag if a 'Heading' style is found in the original paragraph """
-        html = "\t<" + outer_tag + ' style="max-width: 975px">\n'
+        html = "\t<" + outer_tag + ' style="max-width: 975px" ref="target">\n'
 
         
         for text in block.text.splitlines():
@@ -228,13 +228,13 @@ class Docx2HtmlConverter():
             f.write(table._element.xml)
         if self.__has_borders(block):
             css += 'border-spacing: 0px;'
-            html = f'\t<table class="table table-bordered" border="1" style="{css}">\n'
+            html = f'\t<table class="table table-bordered" border="1" style="{css}" ref="target">\n'
         else:
             html = f'\t<table class="table" style="{css}">\n'
 
         for row in table.rows:
             self.__detectPageBreakBlock(block, blockType='table')
-            html += "\t\t<tr>\n"
+            html += '\t\t<tr ref="target">\n'
             for cell in row.cells:
                 html += "\t\t\t<td>\n"
                 # --- 
@@ -244,7 +244,7 @@ class Docx2HtmlConverter():
                     if isinstance(cblock, Paragraph):
                         tmp_heading_type = self.__get_heading_type(cblock)
                         if re.match("List\sParagraph", tmp_heading_type):
-                            clist_items.append("\t\t\t\t<li>" + cblock.text + "</li>\n")
+                            clist_items.append('\t\t\t\t<li ref="target">' + cblock.text + "</li>\n")
                         
                         else:
                             images = self.__render_image(document, cblock, self.image_path,self.image_path)
