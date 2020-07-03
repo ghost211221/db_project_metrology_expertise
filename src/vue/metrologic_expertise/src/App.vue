@@ -25,6 +25,21 @@ export default {
     'app-navigation': Navigation,
     'app-header': Header,
     'app-content': Content
+  },
+  methods: {
+    getJson () {
+      console.log('sending request')
+      return fetch('http://127.0.0.1:5000/healthcheck')
+        .then(result => result.json())
+        .catch(error => this.$refs.error.setText(error))
+    }
+  },
+  beforeMount () {
+    this.getJson()
+      .then(data => {
+        console.log(data)
+      }
+      )
   }
 }
 </script>
