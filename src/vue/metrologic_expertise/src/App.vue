@@ -1,14 +1,17 @@
 <template>
     <div id="app">
         <div class="nav-bar">
-            <app-navigation/>
+            <app-navigation v-on:toggleInitFileDialog="toggleInitFileDialog()"/>
         </div>
         <div class="container">
             <div class="header">
                 <app-header/>
             </div>
             <div class="content">
-                <app-content/>
+                <app-content
+                  v-bind:showInitFileDialog="showInitFileDialog"
+                  v-on:onFileSelect="onFileSelect()"
+                />
             </div>
         </div>
     </div>
@@ -26,12 +29,24 @@ export default {
     'app-header': Header,
     'app-content': Content
   },
+  data () {
+    return {
+      showInitFileDialog: false
+    }
+  },
   methods: {
     getJson () {
       console.log('sending request')
       return fetch('http://127.0.0.1:5000/healthcheck')
         .then(result => result.json())
         .catch(error => this.$refs.error.setText(error))
+    },
+    toggleInitFileDialog () {
+      this.showInitFileDialog = true
+    },
+    onFileSelect () {
+      console.log('Content: file selected')
+      this.showInitFileDialog = false
     }
   },
   beforeMount () {

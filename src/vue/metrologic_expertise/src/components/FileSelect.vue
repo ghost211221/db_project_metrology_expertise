@@ -1,8 +1,8 @@
 <template>
     <label class="file-select">
         <div class="select-button">
-            <span v-if="value">Selected File: {{value.name}}</span>
-            <span v-else>Select File</span>
+            <!-- <span >Текущий файл: {{value.name}}</span> -->
+            <span >Выберите файл</span>
         </div>
         <input type="file" @change="handleFileChange"/>
     </label>
@@ -16,8 +16,14 @@ export default {
 
   methods: {
     handleFileChange (e) {
-      this.$emit('input', e.target.files[0])
-      console.log(this.value)
+      const fileExt = e.target.files[0].name.match(/\.([0-9A-Za-z_]+)$/)
+      for (var ext of fileExt) {
+        if (ext === '.docx') {
+          this.$emit('input', e.target.files[0])
+          return
+        }
+      }
+      alert('Выбран не верный файл. Допускаются только файлы в формате .docx')
     }
   }
 }
@@ -34,6 +40,10 @@ export default {
 
         text-align: center;
         font-weight: bold;
+    }
+
+    .file-select :hover {
+      background-color: #35A977;
     }
 
     .file-select > input[type="file"] {

@@ -3,7 +3,7 @@
         <div class="user user-name">
             UserName
         </div>
-        <div class="btn btn-new">
+        <div class="btn btn-new" v-on:click="btn_new_click()">
             Новый документ
         </div>
         <div class="btn btn-load">
@@ -20,7 +20,18 @@
 
 <script>
 export default {
-  name: 'Navigation'
+  name: 'Navigation',
+  props: [
+    'showInitFileDialog'
+  ],
+  methods: {
+    btn_new_click: function () {
+      console.log('div clicked')
+      this.$emit('toggleInitFileDialog')
+      // targetId = event.currentTarget.id
+      // console.log(targetId) // returns 'foo'
+    }
+  }
 }
 </script>
 
@@ -40,6 +51,11 @@ export default {
     }
 
     .btn {
+        user-select: none; /* supported by Chrome and Opera */
+        -webkit-user-select: none; /* Safari */
+        -khtml-user-select: none; /* Konqueror HTML */
+        -moz-user-select: none; /* Firefox */
+        -ms-user-select: none; /* Internet Explorer/Edge */
         font-size: 16pt;
         display: flex;
         justify-content: center;
