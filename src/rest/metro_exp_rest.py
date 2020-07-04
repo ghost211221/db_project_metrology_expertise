@@ -11,6 +11,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
 from endpoints.getHealthcheck import GetHealthcheck
+from endpoints.getFileUpload import GetFileUpload
 
 
 ROOTDIR = os.path.dirname(os.path.abspath(__file__))
@@ -28,6 +29,11 @@ CORS(app)
 
 
 api.add_resource(GetHealthcheck, '/healthcheck')
+
+api.add_resource(GetFileUpload, '/file-upload', resource_class_kwargs={
+        "engine": engine
+    }
+)
 
 # @app.after_request
 def after_request(response):

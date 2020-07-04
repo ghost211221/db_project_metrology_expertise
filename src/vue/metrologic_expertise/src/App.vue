@@ -10,7 +10,7 @@
             <div class="content">
                 <app-content
                   v-bind:showInitFileDialog="showInitFileDialog"
-                  v-on:onFileSelect="onFileSelect()"
+                  v-on:onFileSelect="onFileSelect"
                 />
             </div>
         </div>
@@ -22,6 +22,8 @@ import Navigation from './components/Navigation.vue'
 import Header from './components/Header.vue'
 import Content from './components/Content.vue'
 
+import axios from 'axios'
+
 export default {
   name: 'App',
   components: {
@@ -31,22 +33,46 @@ export default {
   },
   data () {
     return {
-      showInitFileDialog: false
+      showInitFileDialog: false,
+      selectedFile: null,
+      API: 'http://127.0.0.1:5000'
     }
   },
   methods: {
     getJson () {
-      console.log('sending request')
-      return fetch('http://127.0.0.1:5000/healthcheck')
+      return fetch(this.API + '/healthcheck')
         .then(result => result.json())
         .catch(error => this.$refs.error.setText(error))
     },
     toggleInitFileDialog () {
       this.showInitFileDialog = true
     },
-    onFileSelect () {
+    onFileSelect: function (file) {
       console.log('Content: file selected')
       this.showInitFileDialog = false
+      this.selectedFile = file
+      console.log('==========================')
+      console.log(file.name)
+      console.log(file)
+      console.log('==========================')
+      this.submitFile()
+    },
+    submitFile () {
+      const formData = new FormData()
+      formData.append('file', this.selectedFile)
+      axios.post(this.API + '/file-upload',
+        formData,
+        {
+          headers: {
+            'Content-Type': 'multipart/form-data'
+          }
+        }
+      ).then(function () {
+        console.log('SUCCESS!!')
+      })
+        .catch(function () {
+          console.log('FAILURE!!')
+        })
     }
   },
   beforeMount () {

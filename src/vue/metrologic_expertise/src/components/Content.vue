@@ -48,7 +48,10 @@ export default {
     },
     onFileSelect (fileName) {
       console.log('Content: file selected')
-      this.$emit('onFileSelect', false)
+      console.log(this.file.name)
+      console.log(this.file)
+      console.log('--------------------------')
+      this.$emit('onFileSelect', this.file)
     }
   },
   mounted () {
