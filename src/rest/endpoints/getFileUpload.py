@@ -4,16 +4,22 @@ import sys
 
 from flask_restful import Resource, reqparse, request
 from werkzeug.utils import secure_filename
-
-sys.path.insert(0, '..\\')
+from sqlalchemy.orm import sessionmaker
 
 from config import ALLOWED_EXTENSIONS, FILE_STORAGE_PATH
+from models import UploadFiles
+
+from docxHandle.converter import Docx2HtmlConverter
 
 class GetFileUpload(Resource):
     """ endpont для загрузки файла от клиента """
 
     def __init__(self, **kwargs):
         self.engine  = kwargs['engine']
+        Session = sessionmaker(bind=self.engine)
+        self.session = Session()
+
+        self.converter = Docx2HtmlConverter()
 
     def __allowed_file(self, filename):
         return '.' in filename and filename.rsplit('.', 1)[1] in ALLOWED_EXTENSIONS
@@ -30,5 +36,16 @@ class GetFileUpload(Resource):
         """
         file = request.files['file']
         if file and self.__allowed_file(file.filename):
-            filename = secure_filename(file.filename)
-            file.save(os.path.join(FILE_STORAGE_PATH, 'upload\\common', filename))
+            filename = f'common__{secure_filename(file.filename)}'
+            filepath = os.path.join(FILE_STORAGE_PATH, 'upload\\common\\')
+            file.save(os.path.join(FILE_STORAGE_PATH, 'upload\\common\\', filename))
+
+            file_ = self.session.query(UploadFiles).filter_by(name=filename, path=filepath).first()
+            if not file_:
+                file_ = UploadFiles(name=filename, path=filepath)
+                self.session.add(file_)
+                self.session.commit()
+                
+            self.converter.convert(file_.path, file_.name)
+            return {'html': self.converter.getHtml()}
+

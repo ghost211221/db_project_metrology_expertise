@@ -10,6 +10,8 @@
             <div class="content">
                 <app-content
                   v-bind:showInitFileDialog="showInitFileDialog"
+                  v-bind:documentText="documentHTML"
+                  v-bind:showDocumentText="showDocumentText"
                   v-on:onFileSelect="onFileSelect"
                 />
             </div>
@@ -35,7 +37,9 @@ export default {
     return {
       showInitFileDialog: false,
       selectedFile: null,
-      API: 'http://127.0.0.1:5000'
+      API: 'http://127.0.0.1:5000',
+      documentHTML: '',
+      showDocumentText: false
     }
   },
   methods: {
@@ -46,15 +50,11 @@ export default {
     },
     toggleInitFileDialog () {
       this.showInitFileDialog = true
+      this.showDocumentText = false
     },
     onFileSelect: function (file) {
-      console.log('Content: file selected')
       this.showInitFileDialog = false
       this.selectedFile = file
-      console.log('==========================')
-      console.log(file.name)
-      console.log(file)
-      console.log('==========================')
       this.submitFile()
     },
     submitFile () {
@@ -67,8 +67,9 @@ export default {
             'Content-Type': 'multipart/form-data'
           }
         }
-      ).then(function () {
-        console.log('SUCCESS!!')
+      ).then(data => {
+        this.showDocumentText = true
+        this.documentHTML = data.data.html
       })
         .catch(function () {
           console.log('FAILURE!!')
@@ -81,6 +82,11 @@ export default {
         console.log(data)
       }
       )
+  },
+  mounted () {
+    const fascript = document.createElement('script')
+    fascript.setAttribute('crossorigin', 'anonymous')
+    document.head.appendChild(fascript)
   }
 }
 </script>

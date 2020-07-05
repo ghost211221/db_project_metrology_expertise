@@ -49,13 +49,18 @@ class Docx2HtmlConverter():
 
         self.body = f'<div class="page page-{self.page}" style="width: 975px;">\n'
 
-    def convert(self, dir_path,file):
+    def convert(self, dir_path, file):
         """
             dir_path = "./SOURCEDIR"
             file = "SAMPLE.docx"
 
             image_path will be a directory to store image files; if the directory does not exist it will be created
         """
+
+        print("converter")
+        print(f'filename: #{file}#')
+        print(f'filepath: #{dir_path}#')
+        print(f'filefullpath: #{dir_path + file}#')
 
         splitname = re.split('[. ]', file)
         if len(splitname) > 2:
@@ -66,7 +71,7 @@ class Docx2HtmlConverter():
         if not os.path.isdir(self.image_path):
             os.mkdir(self.image_path)
 
-        self.document = Document(dir_path + '/' + file)
+        self.document = Document(dir_path + file)
 
         self.__covertDocument()
 
@@ -286,7 +291,7 @@ if __name__ == '__main__':
     
     converter = Docx2HtmlConverter()
 
-    converter.convert('..\\..\\files', 'init_document.docx')
+    converter.convert('D:\\design\\GeekBrains\\group_project\\db_project_metrology_expertise\\file_storage\\upload\\common\\', 'common__init_document.docx')
     s = converter.getHtml()
 
     with open('text.html', 'w', encoding='utf8') as f:

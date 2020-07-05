@@ -10,13 +10,15 @@ class UploadFiles(Base):
 
     id = Column(Integer, primary_key=True)
     name = Column(String)
+    path = Column(String)
     user = Column(String)
     active = Column(Boolean)
 
-    def __init__(self, name, user=None, active=True):
+    def __init__(self, name, path, user=None, active=True):
         self.name = name
+        self.path = path
         self.user = user
         self.active = active
 
     def __repr__(self):
-        return f'<UploadFiles({self.name}, {self.user}, {self.active})>'
+        return f'<UploadFiles({self.name}, {self.path}, {self.user}, {self.active})>'

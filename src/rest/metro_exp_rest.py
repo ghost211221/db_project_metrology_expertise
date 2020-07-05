@@ -10,6 +10,8 @@ from flask_cors import CORS
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
+from models import Base
+
 from endpoints.getHealthcheck import GetHealthcheck
 from endpoints.getFileUpload import GetFileUpload
 
@@ -21,6 +23,7 @@ engine  = create_engine('sqlite:///%s' % (ROOTDIR + '/metro_rest.db'),
 
 Session = sessionmaker(bind=engine)
 session = Session()
+Base.metadata.create_all(engine)
 
 app = Flask(__name__)
 api = Api(app)
