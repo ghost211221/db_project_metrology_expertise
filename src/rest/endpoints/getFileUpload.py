@@ -9,7 +9,7 @@ from sqlalchemy.orm import sessionmaker
 from config import ALLOWED_EXTENSIONS, FILE_STORAGE_PATH
 from models import UploadFiles
 
-from docxHandle.converter import Docx2HtmlConverter
+from docxHandle.converter import Docx2JSONConverter
 
 class GetFileUpload(Resource):
     """ endpont для загрузки файла от клиента """
@@ -19,7 +19,7 @@ class GetFileUpload(Resource):
         Session = sessionmaker(bind=self.engine)
         self.session = Session()
 
-        self.converter = Docx2HtmlConverter()
+        self.converter = Docx2JSONConverter()
 
     def __allowed_file(self, filename):
         return '.' in filename and filename.rsplit('.', 1)[1] in ALLOWED_EXTENSIONS
@@ -47,5 +47,5 @@ class GetFileUpload(Resource):
                 self.session.commit()
                 
             self.converter.convert(file_.path, file_.name)
-            return {'html': self.converter.getHtml()}
+            return self.converter.getHtml()
 

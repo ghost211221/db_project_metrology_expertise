@@ -1,12 +1,14 @@
 <template>
-  <div class="modal">
-    <div class="modal-container">
-        <div class="text">
-          <textarea class="text" v-model="text"></textarea>
+  <div class="modal-backdrop">
+    <div class="modal">
+      <div class="modal-container">
+          <div class="text">
+            <textarea class="text" v-model="text"></textarea>
+          </div>
+        <div class="btn-panel">
+          <button class="btn btn-close" @click="close">Закрыть</button>
+          <button class="btn btn-save" @click="save">Применить</button>
         </div>
-      <div class="btn-panel">
-        <button class="btn btn-close" @click="$emit('close')">Закрыть</button>
-        <button class="btn btn-save" @click="save">Применить</button>
       </div>
     </div>
   </div>
@@ -17,8 +19,11 @@ export default {
   name: 'TextEditModal',
   props: ['text'],
   methods: {
+    close () {
+      this.$emit('close')
+    },
     save (e) {
-      // this.$emit('input', e.target.value)
+      this.$emit('input', e.target.value)
       console.log(this.text)
       this.$emit('close')
     }
@@ -27,9 +32,23 @@ export default {
 </script>
 
 <style lang="css" scoped>
+  .modal-backdrop {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background-color: rgba(0, 0, 0, 0.3);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
   .modal {
     background-color: #FFE5C3;
-    min-height: 50pt;
+    box-shadow: 2px 2px 20px 1px;
+    overflow-x: auto;
+    display: flex;
+    flex-direction: column;
     width: 600pt
   }
   textarea {

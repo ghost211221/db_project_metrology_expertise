@@ -20,14 +20,13 @@
 5. перевести определение размеров на pt, как в word.
 """
 
-
-
 from docx import Document
 from docx.document import Document as _Document
 from docx.oxml.text.paragraph import CT_P
 from docx.oxml.table import CT_Tbl
 from docx.table import _Cell, Table
 from docx.text.paragraph import Paragraph
+from simplify_docx import simplify
 import xml.etree.ElementTree as ET
 import time
 import re
@@ -56,12 +55,6 @@ class Docx2HtmlConverter():
 
             image_path will be a directory to store image files; if the directory does not exist it will be created
         """
-
-        print("converter")
-        print(f'filename: #{file}#')
-        print(f'filepath: #{dir_path}#')
-        print(f'filefullpath: #{dir_path + file}#')
-
         splitname = re.split('[. ]', file)
         if len(splitname) > 2:
             self.image_path =  ''.join(splitname[:2]) + '-images'
@@ -162,10 +155,10 @@ class Docx2HtmlConverter():
         return block.style.name
 
     def __render_image(self, document, par, dir_path, book_id):
-        """get all of the images in a paragraph 
-        :param par: a paragraph object from docx
-        :return: a list of r:embed 
-        """
+        # get all of the images in a paragraph 
+        # :param par: a paragraph object from docx
+        # :return: a list of r:embed 
+        
         ids = []
         root = ET.fromstring(par._p.xml)
         namespace = {
@@ -286,13 +279,60 @@ class Docx2HtmlConverter():
 
         return css
 
-if __name__ == '__main__':
+# if __name__ == '__main__':
 
     
-    converter = Docx2HtmlConverter()
+#     converter = Docx2HtmlConverter()
 
-    converter.convert('D:\\design\\GeekBrains\\group_project\\db_project_metrology_expertise\\file_storage\\upload\\common\\', 'common__init_document.docx')
-    s = converter.getHtml()
+#     converter.convert('D:\\design\\GeekBrains\\group_project\\db_project_metrology_expertise\\file_storage\\upload\\common\\', 'common__init_document.docx')
+#     s = converter.getHtml()
 
-    with open('text.html', 'w', encoding='utf8') as f:
-        f.write(s)
+#     with open('text.html', 'w', encoding='utf8') as f:
+#         f.write(s)
+        
+class Docx2JSONConverter():
+
+    def __init__(self):
+
+        self.document = None
+
+        self.body = {}
+
+    def convert(self, dir_path, file):
+
+        self.document = Document(dir_path + file)
+
+        self.__covertDocument()
+
+    def getHtml(self):
+        """ возврат сгенеренного html кода """
+
+        return self.body
+
+    def __covertDocument(self):
+
+        self.body = simplify(
+            self.document, 
+            {
+                "ignore-empty-paragraphs": False,
+                "ignore-empty-text": False,
+                "remove-leading-white-space": False,
+            }
+        )
+
+if __name__ == '__main__':
+
+    # read in a document 
+    my_doc = docx.Document('D:\\design\\GeekBrains\\group_project\\db_project_metrology_expertise\\files\\init_document.docx')
+
+    # coerce to JSON using the standard options
+    my_doc_as_json = simplify(my_doc)
+
+    # or with non-standard options
+    # my_doc_as_json = simplify(my_doc,{"remove-leading-white-space":False})
+
+    import pprint
+
+    pp = pprint.PrettyPrinter(indent=4)
+
+    pp.pprint(my_doc_as_json)

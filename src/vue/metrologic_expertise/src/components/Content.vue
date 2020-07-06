@@ -2,7 +2,25 @@
     <div class="content">
         <p v-if="showInitFileDialog">Выберите файл<file-select v-model="file" v-on:input="onFileSelect"></file-select></p>
         <!-- <p v-if="file">{{file.name}}</p> -->
-        <div class="text-document" v-if="showDocumentText" v-html="documentText" ref="target"></div>
+        <!-- <div class="text-document" v-if="showDocumentText" v-html="documentText"></div> -->
+        <TextEditModal
+          :text="textModal"
+          v-show="isModalVisible "
+          @close="closeModal">
+        </TextEditModal>
+        <div class="text-document" v-if="showDocumentText">
+          <div  v-for="item in documentText" :key="item.type">
+            <!-- {{ item.TYPE }} -->
+            <p  class="document-paragraph"
+                v-bind:ref="elementIndex(item, 'paragraph')"
+                v-bind:class="elementIndex(item, 'paragraph')"
+                v-if="item.TYPE == 'paragraph' && item.VALUE[0]"
+                v-on:mouseup="testFunction">
+                  {{ item.VALUE[0].VALUE }}
+            </p>
+            <br v-if="item.TYPE == 'paragraph' && !item.VALUE[0]"/>
+          </div>
+        </div>
         <div class="text-hello" v-if="canShowHello()">
           <p>
             Добро пожаловать! <br/>
@@ -10,7 +28,6 @@
             Или нажмите кнопку "Загрузить документ" для выбора одного из старых документов. <br/>
           </p>
         </div>
-        <TextEditModal :text="textModal" v-if="showModal" @close="$emit('showModal = false')"></TextEditModal>
     </div>
 </template>
 
@@ -30,16 +47,15 @@ export default {
   },
   data () {
     return {
-      showModal: false,
+      isModalVisible: false,
       textModal: '',
       file: null
     }
   },
   methods: {
     testFunction () {
-      console.log('text selected')
       this.textModal = window.getSelection().toString()
-      this.showModal = true
+      this.isModalVisible = true
     },
     canShowHello () {
       return !this.showInitFileDialog && !this.documentText && !this.file
@@ -47,35 +63,22 @@ export default {
     canShowFileDialog () {
       return this.showInitFileDialog
     },
+    showModal () {
+      this.isModalVisible = true
+    },
+    closeModal () {
+      this.isModalVisible = false
+    },
     onFileSelect (fileName) {
       this.$emit('onFileSelect', this.file)
+    },
+    elementIndex (element, type) {
+      return type + '-' + this.documentText.indexOf(element)
     }
   },
   mounted () {
-    document.addEventListener('mouseup', event => {
-      if (event.target === this.$refs.target || event.target.contains(this.$refs.target)) {
-        console.log('connect test fuction')
-        this.testFunction()
-      }
-    })
-    document.querySelectorAll('p, li').forEach(item => {
-      item.addEventListener('mouseup', event => {
-        console.log(item)
-        this.testFunction()
-      })
-    })
   },
   watch: {
-    documentText: function (newVal, oldVal) { // watch it
-      console.log(newVal, oldVal)
-      console.log(document.querySelectorAll('p, li'))
-      document.querySelectorAll('p, li').forEach(item => {
-        item.addEventListener('mouseup', event => {
-          console.log(item)
-          this.testFunction()
-        })
-      })
-    }
   }
 }
 </script>

@@ -69,7 +69,8 @@ export default {
         }
       ).then(data => {
         this.showDocumentText = true
-        this.documentHTML = data.data.html
+        console.log('1')
+        this.documentHTML = data.data.VALUE[0].VALUE
       })
         .catch(function () {
           console.log('FAILURE!!')
