@@ -13,6 +13,7 @@
                   v-bind:documentText="documentHTML"
                   v-bind:showDocumentText="showDocumentText"
                   v-on:onFileSelect="onFileSelect"
+                  v-on:sendStruct="onSendStruct"
                 />
             </div>
         </div>
@@ -57,6 +58,18 @@ export default {
       this.selectedFile = file
       this.submitFile()
     },
+    onSendStruct: function (struct) {
+      const formData = new FormData()
+      formData.append('data', JSON.stringify(struct))
+      axios.post(this.API + '/text-edited',
+        formData
+      ).then(data => {
+        console.log('SUCCESS!!')
+      })
+        .catch(function () {
+          console.log('FAILURE!!')
+        })
+    },
     submitFile () {
       const formData = new FormData()
       formData.append('file', this.selectedFile)
@@ -69,11 +82,12 @@ export default {
         }
       ).then(data => {
         this.showDocumentText = true
-        console.log('1')
-        this.documentHTML = data.data.VALUE[0].VALUE
+        console.log('submit SUCCESS')
+        console.log(data)
+        this.documentHTML = data.data
       })
         .catch(function () {
-          console.log('FAILURE!!')
+          console.log('submit FAILURE!!')
         })
     }
   },

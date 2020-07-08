@@ -14,6 +14,7 @@ from models import Base
 
 from endpoints.getHealthcheck import GetHealthcheck
 from endpoints.getFileUpload import GetFileUpload
+from endpoints.getEditText import GetEditText
 
 
 ROOTDIR = os.path.dirname(os.path.abspath(__file__))
@@ -34,6 +35,10 @@ CORS(app)
 api.add_resource(GetHealthcheck, '/healthcheck')
 
 api.add_resource(GetFileUpload, '/file-upload', resource_class_kwargs={
+        "engine": engine
+    }
+)
+api.add_resource(GetEditText, '/text-edited', resource_class_kwargs={
         "engine": engine
     }
 )

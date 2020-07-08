@@ -4,21 +4,40 @@
         <!-- <p v-if="file">{{file.name}}</p> -->
         <!-- <div class="text-document" v-if="showDocumentText" v-html="documentText"></div> -->
         <TextEditModal
-          :text="textModal"
+          v-bind:text="textModalEdit"
           v-show="isModalVisible "
-          @close="closeModal">
+          v-on:save="closeModal">
         </TextEditModal>
         <div class="text-document" v-if="showDocumentText">
-          <div  v-for="item in documentText" :key="item.type">
-            <!-- {{ item.TYPE }} -->
-            <p  class="document-paragraph"
+          <div  v-for="item in documentText" :key="item.ref">
+            <div
+                v-bind:class="item.class"
+                v-bind:style="item.style"
+                v-bind:ref="item.ref">
+
+              <div v-for="child in item.children" :key="child.ref">
+                <p
+                  v-if="child.type === 'p'"
+                  v-bind:ref="child.ref"
+                  v-bind:style="child.style"
+                  v-bind:class="child.class"
+                  v-on:mousedown="onmousedown"
+                  v-on:mouseup="onmouseup">
+
+                  {{ child.text }}
+                </p>
+              </div>
+            </div>
+
+            <!-- <p  class="document-paragraph"
                 v-bind:ref="elementIndex(item, 'paragraph')"
                 v-bind:class="elementIndex(item, 'paragraph')"
                 v-if="item.TYPE == 'paragraph' && item.VALUE[0]"
-                v-on:mouseup="testFunction">
+                v-on:mousedown="onmousedown"
+                v-on:mouseup="onmouseup">
                   {{ item.VALUE[0].VALUE }}
-            </p>
-            <br v-if="item.TYPE == 'paragraph' && !item.VALUE[0]"/>
+            </p> -->
+            <!-- <br v-if="item.TYPE == 'paragraph' && !item.VALUE[0]"/> -->
           </div>
         </div>
         <div class="text-hello" v-if="canShowHello()">
@@ -48,13 +67,22 @@ export default {
   data () {
     return {
       isModalVisible: false,
-      textModal: '',
-      file: null
+      textModalInit: '',
+      textModalEdit: '',
+      file: null,
+      firstEl: '',
+      secondEl: '',
+      editedTextStruct: {}
     }
   },
   methods: {
-    testFunction () {
-      this.textModal = window.getSelection().toString()
+    onmousedown (event) {
+      this.firstEl = event.target.className
+    },
+    onmouseup (event) {
+      this.secondEl = event.target.className
+      this.textModalInit = window.getSelection().toString()
+      this.textModalEdit = window.getSelection().toString()
       this.isModalVisible = true
     },
     canShowHello () {
@@ -66,8 +94,18 @@ export default {
     showModal () {
       this.isModalVisible = true
     },
-    closeModal () {
+    closeModal (editedText) {
       this.isModalVisible = false
+      this.editedTextStruct = {
+        fistEl: this.firstEl,
+        secondEl: this.secondEl,
+        initText: this.textModalInit,
+        editText: editedText
+      }
+      console.log(this.editedTextStruct)
+      if (this.textModalInit !== editedText) {
+        this.$emit('sendStruct', this.editedTextStruct)
+      }
     },
     onFileSelect (fileName) {
       this.$emit('onFileSelect', this.file)

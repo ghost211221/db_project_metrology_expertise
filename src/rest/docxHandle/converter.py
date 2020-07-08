@@ -43,10 +43,16 @@ class Docx2HtmlConverter():
 
         self.page = 1
         self.firstPage = True
+        self.paragraph = 1
 
         self.table_n = 0
 
         self.body = f'<div class="page page-{self.page}" style="width: 975px;">\n'
+
+        self.body_json = []
+
+        self.__addNewPage()
+
 
     def convert(self, dir_path, file):
         """
@@ -72,6 +78,11 @@ class Docx2HtmlConverter():
         """ возврат сгенеренного html кода """
 
         return self.body
+
+    def getJSON(self):
+        """ возврат сгенеренного JSON """
+
+        return self.body_json
 
     def __covertDocument(self):
         for block in self.__iter_block_items(self.document):
@@ -144,8 +155,11 @@ class Docx2HtmlConverter():
 
     def __detectPageBreak(self, block, blockType='paragraph'):
         """ поиск разрыва строки в Paragraph run или в table row"""
-        if 'lastRenderedPageBreak' in block._element.xml or 'w:br' in block._element.xml and 'type="page"' in block._element.xml:
+        # if 'lastRenderedPageBreak' in block._element.xml or 'w:br' in block._element.xml and 'type="page"' in block._element.xml:
+        if 'w:br' in block._element.xml and 'type="page"' in block._element.xml:
             self.page += 1
+            self.__addNewPage()
+            self.paragraph = 1
             if blockType == 'paragraph':
                 self.body += f'</div>\n<div class="page page-{self.page}" style="width: 975px;">\n'
             else:
@@ -203,15 +217,17 @@ class Docx2HtmlConverter():
         """ Modified to use a different outer_tag if a 'Heading' style is found in the original paragraph """
         html = "\t<" + outer_tag + ' style="max-width: 975px" ref="target">\n'
 
-        
+        text_ = ''
         for text in block.text.splitlines():
             if 'w:jc' in block._element.xml and 'val="center"'  in block._element.xml:
                 html += f'\t\t<center>{text}</center>'
-
             else:
                 html += f'\t\t{text}'
+                
+            text_ += text
 
         html += "\t</" + outer_tag + ">\n"
+        self.__addPToPage(text_)
 
         return html
 
@@ -279,6 +295,30 @@ class Docx2HtmlConverter():
 
         return css
 
+    def __addNewPage(self):
+        self.body_json.append(
+            {
+                'type': 'div',
+                'class': f'page page-{self.page}',
+                'ref': f'page-{self.page}',
+                'style': 'width: 975px',
+                'children': []
+            }
+        )
+
+    def __addPToPage(self, text):
+        self.body_json[self.page-1]['children'].append(
+            {
+                'type': 'p',
+                'class': f'paragraph paragraph-{self.paragraph}',                
+                'ref': f'page-{self.page}-paragraph-{self.paragraph}',
+                'style': '',
+                'text': text
+            }
+        )
+
+        self.paragraph += 1
+
 # if __name__ == '__main__':
 
     
@@ -322,17 +362,23 @@ class Docx2JSONConverter():
 
 if __name__ == '__main__':
 
-    # read in a document 
-    my_doc = docx.Document('D:\\design\\GeekBrains\\group_project\\db_project_metrology_expertise\\files\\init_document.docx')
+    # # read in a document 
+    # my_doc = docx.Document('D:\\design\\GeekBrains\\group_project\\db_project_metrology_expertise\\files\\init_document.docx')
 
-    # coerce to JSON using the standard options
-    my_doc_as_json = simplify(my_doc)
+    # # coerce to JSON using the standard options
+    # my_doc_as_json = simplify(my_doc)
 
-    # or with non-standard options
-    # my_doc_as_json = simplify(my_doc,{"remove-leading-white-space":False})
+    # # or with non-standard options
+    # # my_doc_as_json = simplify(my_doc,{"remove-leading-white-space":False})
 
     import pprint
 
     pp = pprint.PrettyPrinter(indent=4)
 
-    pp.pprint(my_doc_as_json)
+    converter = Docx2HtmlConverter()
+
+    converter.convert('D:\\design\\GeekBrains\\group_project\\db_project_metrology_expertise\\files\\', 'init_document.docx')
+
+    pp.pprint(converter.getJSON())
+    
+    

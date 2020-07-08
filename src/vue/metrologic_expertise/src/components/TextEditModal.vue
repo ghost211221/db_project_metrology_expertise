@@ -3,7 +3,7 @@
     <div class="modal">
       <div class="modal-container">
           <div class="text">
-            <textarea class="text" v-model="text"></textarea>
+            <textarea class="text" v-model="editedText"></textarea>
           </div>
         <div class="btn-panel">
           <button class="btn btn-close" @click="close">Закрыть</button>
@@ -18,14 +18,23 @@
 export default {
   name: 'TextEditModal',
   props: ['text'],
+  data: function () {
+    return {
+      editedText: ''
+    }
+  },
   methods: {
     close () {
       this.$emit('close')
     },
     save (e) {
-      this.$emit('input', e.target.value)
-      console.log(this.text)
-      this.$emit('close')
+      this.$emit('save', this.editedText)
+    }
+  },
+  watch: {
+    // эта функция запускается при любом изменении вопроса
+    text: function (newQuestion, oldQuestion) {
+      this.editedText = this.text
     }
   }
 }
