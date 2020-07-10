@@ -23,7 +23,8 @@ class GetEditText(Resource):
 
     def post(self): 
         if request.form['data']:
-            diff_data = request.form['data']
+            diff_data = json.loads(request.form['data'])
+
             init_doc = self.session.query(InitDocumentJson).filter_by(init_file_id=int(diff_data['document_id'])).first()
             if init_doc:
                 diff_ = self.session.query(DiffJson).filter_by(json=json.dumps(diff_data), init_json_id=init_doc.id).first()
