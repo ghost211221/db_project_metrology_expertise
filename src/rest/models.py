@@ -40,17 +40,9 @@ class InitDocumentJson(Base):
 
     upload_files = relationship('UploadFiles', uselist=True, cascade='delete,all')
 
-
-class CurrentDocumentJson(Base):
-    """ Таблица с JSON текущей редакции документа """
-    __tablename__ = 'current_document_json'
-
-    id = Column(Integer, primary_key=True)
-    json = Column(String)
-
-    init_json_id = Column(Integer, ForeignKey('init_document_json.id'))
-
-    init_document_json = relationship('InitDocumentJson', uselist=True, cascade='delete,all')
+    def __init__(self, json, init_file_id):
+        self.json = json
+        self.init_file_id = init_file_id
 
 
 class DiffJson(Base):
@@ -61,6 +53,11 @@ class DiffJson(Base):
     json = Column(String)
     datetime = Column(DateTime)
 
-    init_json_id = Column(Integer, ForeignKey('current_document_json.id'))
+    init_json_id = Column(Integer, ForeignKey('init_document_json.id'))
 
-    current_document_json = relationship('CurrentDocumentJson', uselist=True, cascade='delete,all')
+    init_document_json = relationship('InitDocumentJson', uselist=True, cascade='delete,all')
+
+    def __init__(self, json, init_json_id):
+        self.json = json
+        self.init_json_id = init_json_id
+        self.datetime = datetime.now()

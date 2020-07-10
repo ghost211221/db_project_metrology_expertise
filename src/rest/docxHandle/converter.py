@@ -32,6 +32,7 @@ import time
 import re
 import os
 
+
 class Docx2HtmlConverter():
 
     def __init__(self):
@@ -372,13 +373,23 @@ if __name__ == '__main__':
     # # my_doc_as_json = simplify(my_doc,{"remove-leading-white-space":False})
 
     import pprint
+    import xmltodict
+    import json
 
     pp = pprint.PrettyPrinter(indent=4)
 
-    converter = Docx2HtmlConverter()
+    # converter = Docx2HtmlConverter()
 
-    converter.convert('D:\\design\\GeekBrains\\group_project\\db_project_metrology_expertise\\files\\', 'init_document.docx')
+    # converter.convert('D:\\design\\GeekBrains\\group_project\\db_project_metrology_expertise\\files\\', 'init_document.docx')
 
-    pp.pprint(converter.getJSON())
+    # pp.pprint(converter.getJSON())
+    doc = Document('D:\\design\\GeekBrains\\group_project\\db_project_metrology_expertise\\files\\init_document.docx')
+    with open('xml.txt', 'w', encoding='utf8') as f:
+            f.write(doc._element.xml)
+    with open('json.txt', 'w', encoding='utf8') as f:
+            f.write(json.dumps(xmltodict.parse(doc._element.xml), indent=4))
+    
+    
+
     
     

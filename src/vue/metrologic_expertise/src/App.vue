@@ -40,7 +40,8 @@ export default {
       selectedFile: null,
       API: 'http://127.0.0.1:5000',
       documentHTML: '',
-      showDocumentText: false
+      showDocumentText: false,
+      documentID: 0
     }
   },
   methods: {

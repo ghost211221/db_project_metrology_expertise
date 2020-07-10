@@ -6,10 +6,11 @@
         <TextEditModal
           v-bind:text="textModalEdit"
           v-show="isModalVisible "
-          v-on:save="closeModal">
+          v-on:save="closeModal"
+          v-on:close="closeModal">
         </TextEditModal>
         <div class="text-document" v-if="showDocumentText">
-          <div  v-for="item in documentText" :key="item.ref">
+          <div  v-for="item in documentText.data" :key="item.ref">
             <div
                 v-bind:class="item.class"
                 v-bind:style="item.style"
@@ -78,6 +79,7 @@ export default {
   methods: {
     onmousedown (event) {
       this.firstEl = event.target.className
+      console.log(event)
     },
     onmouseup (event) {
       this.secondEl = event.target.className
@@ -97,6 +99,7 @@ export default {
     closeModal (editedText) {
       this.isModalVisible = false
       this.editedTextStruct = {
+        document_id: this.documentText.document_id,
         fistEl: this.firstEl,
         secondEl: this.secondEl,
         initText: this.textModalInit,

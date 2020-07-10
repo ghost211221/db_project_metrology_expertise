@@ -7,7 +7,7 @@ from werkzeug.utils import secure_filename
 from sqlalchemy.orm import sessionmaker
 
 from config import ALLOWED_EXTENSIONS, FILE_STORAGE_PATH
-from models import UploadFiles
+from models import UploadFiles, InitDocumentJson
 
 from docxHandle.converter import Docx2HtmlConverter
 
@@ -47,5 +47,21 @@ class GetFileUpload(Resource):
                 self.session.commit()
                 
             self.converter.convert(file_.path, file_.name)
-            return self.converter.getJSON()
+
+            json_data = self.converter.getJSON()
+
+            print(file_.id)
+
+            json_ = self.session.query(InitDocumentJson).filter_by(json=json.dumps(json_data), init_file_id=file_.id).first()
+            if not json_:
+                json_ = InitDocumentJson(
+                    json=json.dumps(json_data),
+                    init_file_id=file_.id
+                )
+                self.session.add(json_)
+                self.session.commit()
+
+            self.session.commit()
+
+            return {'document_id': file_.id, 'data': json_data}
 
