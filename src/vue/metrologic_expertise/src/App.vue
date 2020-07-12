@@ -5,7 +5,9 @@
         </div>
         <div class="container">
             <div class="header">
-                <app-header/>
+                <app-header
+                  v-on:onReportGen="onReportGen()"
+                />
             </div>
             <div class="content">
                 <app-content
@@ -38,7 +40,7 @@ export default {
     return {
       showInitFileDialog: false,
       selectedFile: null,
-      API: 'http://127.0.0.1:5000',
+      API: 'http://192.168.1.237:5000',
       documentHTML: '',
       showDocumentText: false,
       documentID: 0
@@ -85,10 +87,38 @@ export default {
         this.showDocumentText = true
         console.log('submit SUCCESS')
         console.log(data)
+        console.log(data.document_id)
         this.documentHTML = data.data
+        this.documentID = data.data.document_id
+        console.log('doc_id', this.documentID)
       })
         .catch(function () {
           console.log('submit FAILURE!!')
+        })
+    },
+    onReportGen: function () {
+      const formData = new FormData()
+      formData.append('data', JSON.stringify({ document_id: this.documentID }))
+      // formData.append({ responseType: 'arraybuffer' })
+
+      axios
+        .post(this.API + '/report-gen',
+          // {
+          // data: JSON.stringify({ document_id: this.documentID })
+          // responseType: 'arraybuffer'
+          // }
+          formData
+        )
+        .then(function (response) {
+          // const blob = new Blob([response.data])
+          // const link = document.createElement('a')
+          // link.href = window.URL.createObjectURL(blob)
+          // link.download = 'Report.docx'
+          // link.click()
+        })
+        .catch(function (error) {
+          console.log('submit FAILURE!!')
+          console.log(error.response.data)
         })
     }
   },

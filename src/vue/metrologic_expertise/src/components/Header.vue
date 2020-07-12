@@ -15,7 +15,7 @@
             <div class="btn btn-save">
                 Сохранить
             </div>
-            <div class="btn btn-report">
+            <div class="btn btn-report" v-on:click="btn_report_click()">
                 Отчет
             </div>
         </div>
@@ -24,7 +24,13 @@
 
 <script>
 export default {
-  name: 'Header'
+  name: 'Header',
+  methods: {
+    btn_report_click: function () {
+      console.log('report gen btn pressed')
+      this.$emit('onReportGen')
+    }
+  }
 }
 </script>
 
