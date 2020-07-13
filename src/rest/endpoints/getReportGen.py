@@ -21,25 +21,33 @@ class GetReportGen(Resource):
 
     def __parseArgs(self, argsList):
         parser = reqparse.RequestParser()
+        print(parser)
         for argExp in argsList:
             parser.add_argument(argExp[0], type=argExp[1])
         return parser.parse_args()
 
     def post(self): 
-        print(request)
-        # [print(k,v) for k,v in request.__dict__.items()]
-        print(request.form)
-        print(request.form['data'])
-        if request.form['data']:
-            print(request.form)
-            print(request.form['data'])
-            diff_data = json.loads(request.form['data'])
 
-            path, name = self.report_generator.generateTable(self.session, diff_data['document_id'])
-
+        # args = self.__parseArgs([('document_id', int),])
+        args = request.get_json(force=True)
+        print(args)
+        if args['data'] and args['data']['document_id']:
+            print(args['data']['document_id'])
+            print(type(args['data']['document_id']))
+            path, name = self.report_generator.generateTable(self.session, args['data']['document_id'])
             print(path, name)
-
             # return send_file(os.path.join(path, name), as_attachment=True, attachment_filename=name)
-
             return send_from_directory(path, name, as_attachment=True)
+
+        # if request.form['data']:
+
+        #     diff_data = json.loads(request.form['data'])
+
+        #     path, name = self.report_generator.generateTable(self.session, diff_data['document_id'])
+
+        #     print(path, name)
+
+        #     # return send_file(os.path.join(path, name), as_attachment=True, attachment_filename=name)
+
+        #     return send_from_directory(path, name, as_attachment=True)
 

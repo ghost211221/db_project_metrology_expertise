@@ -97,29 +97,57 @@ export default {
         })
     },
     onReportGen: function () {
-      const formData = new FormData()
-      formData.append('data', JSON.stringify({ document_id: this.documentID }))
-      // formData.append({ responseType: 'arraybuffer' })
+      // var axios = require('axios');
+      const data = JSON.stringify({ data: { document_id: this.documentID } })
 
-      axios
-        .post(this.API + '/report-gen',
-          // {
-          // data: JSON.stringify({ document_id: this.documentID })
-          // responseType: 'arraybuffer'
-          // }
-          formData
-        )
+      const config = {
+        method: 'post',
+        url: this.API + '/report-gen',
+        // withCredentials: true,
+        headers: {
+          'Content-Type': 'multipart/form-data;, application/json',
+          Accept: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+        },
+        data: data,
+        responseType: 'blob'
+      }
+
+      axios(config)
         .then(function (response) {
-          // const blob = new Blob([response.data])
-          // const link = document.createElement('a')
-          // link.href = window.URL.createObjectURL(blob)
-          // link.download = 'Report.docx'
-          // link.click()
+          // download(response.data, 'export-directorio.xlsx')
+          // console.log(JSON.stringify(response.data))
+          // console.log(response)
+          const blob = new Blob([response.data], { type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', encoding: 'UTF-8' })
+          console.log(blob)
+          const link = document.createElement('a')
+          link.href = window.URL.createObjectURL(blob)
+          link.download = 'Report.docx'
+          link.click()
         })
         .catch(function (error) {
-          console.log('submit FAILURE!!')
-          console.log(error.response.data)
+          console.log(error)
         })
+
+      // axios
+      //   .post(this.API + '/report-gen',
+      //     {
+      //       data: { document_id: this.documentID },
+      //       responseType: 'blob'
+      //     }
+      //   )
+      //   .then(function (response) {
+      //     console.log(response)
+      //     const blob = new Blob([response.data], { type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' })
+      //     console.log(blob)
+      //     const link = document.createElement('a')
+      //     link.href = window.URL.createObjectURL(blob)
+      //     link.download = 'Report.docx'
+      //     link.click()
+      //   })
+      //   .catch(function (error) {
+      //     console.log('submit FAILURE!!')
+      //     console.log(error.response.data)
+      //   })
     }
   },
   beforeMount () {
