@@ -239,8 +239,7 @@ class Docx2HtmlConverter():
 
         html = ''
         css = ''
-        with open('xml.txt', 'a', encoding='utf8') as f:
-            f.write(table._element.xml)
+
         if self.__has_borders(block):
             css += 'border-spacing: 0px;'
             html = f'\t<table class="table table-bordered" border="1" style="{css}" ref="target">\n'
@@ -292,7 +291,6 @@ class Docx2HtmlConverter():
         css = ''
 
         styles = block.style
-        print(styles)
 
         return css
 
@@ -373,21 +371,20 @@ if __name__ == '__main__':
     # # my_doc_as_json = simplify(my_doc,{"remove-leading-white-space":False})
 
     import pprint
-    import xmltodict
     import json
 
     pp = pprint.PrettyPrinter(indent=4)
 
-    # converter = Docx2HtmlConverter()
+    converter = Docx2HtmlConverter()
 
-    # converter.convert('D:\\design\\GeekBrains\\group_project\\db_project_metrology_expertise\\files\\', 'init_document.docx')
+    converter.convert('/home/ghost/design/programming/python/geekbrains/group_project/db_project_metrology_expertise/files/', 'init_document.docx')
 
     # pp.pprint(converter.getJSON())
-    doc = Document('D:\\design\\GeekBrains\\group_project\\db_project_metrology_expertise\\files\\init_document.docx')
-    with open('xml.txt', 'w', encoding='utf8') as f:
-            f.write(doc._element.xml)
-    with open('json.txt', 'w', encoding='utf8') as f:
-            f.write(json.dumps(xmltodict.parse(doc._element.xml), indent=4))
+    # doc = Document('/home/ghost/design/programming/python/geekbrains/group_project/db_project_metrology_expertise/files/init_document.docx')
+    # with open('xml.txt', 'w', encoding='utf8') as f:
+    #         f.write(doc._element.xml)
+    # with open('json.txt', 'w', encoding='utf8') as f:
+    #         f.write(json.dumps(xmltodict.parse(doc._element.xml), indent=4))
     
     
 

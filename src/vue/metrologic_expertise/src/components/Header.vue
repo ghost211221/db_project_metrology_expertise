@@ -12,9 +12,9 @@
             </div>
         </div>
         <div class="document">
-            <div class="btn btn-save">
+            <!-- <div class="btn btn-save">
                 Сохранить
-            </div>
+            </div> -->
             <div class="btn btn-report" v-on:click="btn_report_click()">
                 Отчет
             </div>

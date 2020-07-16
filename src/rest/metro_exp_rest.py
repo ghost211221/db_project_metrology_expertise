@@ -36,22 +36,24 @@ CORS(app)
 api.add_resource(GetHealthcheck, '/healthcheck')
 
 api.add_resource(GetFileUpload, '/file-upload', resource_class_kwargs={
-        "engine": engine
+        "session": session
     }
 )
 api.add_resource(GetEditText, '/text-edited', resource_class_kwargs={
-        "engine": engine
+        "session": session
     }
 )
 api.add_resource(GetReportGen, '/report-gen', resource_class_kwargs={
-        "engine": engine
+        "session": session
     }
 )
 
 # @app.after_request
-def after_request(response):
-    response.headers.add('Access-Control-Allow-Origin', '*')
-    return response
+# def after_request(response):
+#     response.headers.add('Access-Control-Allow-Origin', '*')
+#     response.headers['Access-Control-Allow-Headers'] = 'Access-Control-Allow-Headers, Origin, X-Requested-With, Content-Type, Accept, Authorization'
+#     response.headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, OPTIONS, HEAD'
+#     return response
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0')

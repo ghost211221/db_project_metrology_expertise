@@ -27,13 +27,13 @@ export default {
     close () {
       this.$emit('close')
     },
-    save (e) {
+    save () {
       this.$emit('save', this.editedText)
     }
   },
   watch: {
     // эта функция запускается при любом изменении вопроса
-    text: function (newQuestion, oldQuestion) {
+    text: function () {
       this.editedText = this.text
     }
   }

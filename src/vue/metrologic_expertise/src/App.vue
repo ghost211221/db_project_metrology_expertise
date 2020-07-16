@@ -66,7 +66,7 @@ export default {
       formData.append('data', JSON.stringify(struct))
       axios.post(this.API + '/text-edited',
         formData
-      ).then(data => {
+      ).then(function () {
         console.log('SUCCESS!!')
       })
         .catch(function () {
@@ -85,15 +85,13 @@ export default {
         }
       ).then(data => {
         this.showDocumentText = true
-        console.log('submit SUCCESS')
-        console.log(data)
-        console.log(data.document_id)
         this.documentHTML = data.data
         this.documentID = data.data.document_id
-        console.log('doc_id', this.documentID)
       })
-        .catch(function () {
+        .catch(function (error) {
           console.log('submit FAILURE!!')
+          console.log(error)
+          console.log('------------------------------------------------')
         })
     },
     onReportGen: function () {
@@ -103,7 +101,6 @@ export default {
       const config = {
         method: 'post',
         url: this.API + '/report-gen',
-        // withCredentials: true,
         headers: {
           'Content-Type': 'multipart/form-data;, application/json',
           Accept: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'

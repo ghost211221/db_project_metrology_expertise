@@ -11,10 +11,8 @@ class GetEditText(Resource):
     """ endpont для загрузки файла от клиента """
 
     def __init__(self, **kwargs):
-        self.engine  = kwargs['engine']
-        Session = sessionmaker(bind=self.engine)
-        self.session = Session()
-
+        self.session  = kwargs['session']
+        
     def __parseArgs(self, argsList):
         parser = reqparse.RequestParser()
         for argExp in argsList:

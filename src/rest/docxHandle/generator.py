@@ -10,6 +10,7 @@ from models import InitDocumentJson, DiffJson, UploadFiles
 
 from config import FILE_STORAGE_PATH
 
+
 class ResultTableGenerator():
     """ Класс генератора сводной таблицы
     
@@ -56,7 +57,6 @@ class ResultTableGenerator():
         for row in range(self.diffs_cnt+1):
             if row > 0:
                 diff = json.loads(self.diffs[row-1].json)
-                print(diff)
             for col in range(4):
                 # получаем ячейку таблицы
                 cell = table.cell(row, col)
@@ -88,9 +88,9 @@ class ResultTableGenerator():
         file_name_list = self.file_name.split('.')
 
         filename = f'table__{self.file_name}'
-        filepath = os.path.join(FILE_STORAGE_PATH, 'download\\common\\')
+        filepath = os.path.join(FILE_STORAGE_PATH, 'download/common/')
 
-        self.doc.save(os.path.join(FILE_STORAGE_PATH, 'download\\common\\', filename))
+        self.doc.save(os.path.join(FILE_STORAGE_PATH, 'download/common/', filename))
 
         return filepath, filename
 

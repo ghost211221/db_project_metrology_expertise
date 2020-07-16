@@ -3,6 +3,15 @@
         <p v-if="showInitFileDialog">Выберите файл<file-select v-model="file" v-on:input="onFileSelect"></file-select></p>
         <!-- <p v-if="file">{{file.name}}</p> -->
         <!-- <div class="text-document" v-if="showDocumentText" v-html="documentText"></div> -->
+        
+        <div class="spinner" v-if="!showInitFileDialog && !showDocumentText">
+          <p>
+            Идет загрузка документа.<br/>
+            <br/>
+          </p>
+          <Spinner></Spinner>          
+         </div>
+
         <TextEditModal
           v-bind:text="textModalEdit"
           v-show="isModalVisible "
@@ -54,6 +63,8 @@
 <script>
 import FileSelect from './FileSelect.vue'
 import TextEditModal from './TextEditModal'
+import Spinner from 'vue-simple-spinner'
+
 export default {
   name: 'Content',
   props: [
@@ -63,7 +74,8 @@ export default {
   ],
   components: {
     FileSelect,
-    TextEditModal
+    TextEditModal,
+    Spinner
   },
   data () {
     return {
@@ -75,7 +87,7 @@ export default {
       secondEl: '',
       editedTextStruct: {},
       selectedRange: null,
-      ccanCreateSpan: false
+      ccanCreateSpan: false,
     }
   },
   methods: {
@@ -147,7 +159,8 @@ export default {
         this.$emit('sendStruct', this.editedTextStruct)
       }
     },
-    onFileSelect (fileName) {
+    onFileSelect () {
+      this.canShowSpinner = true
       this.$emit('onFileSelect', this.file)
     },
     elementIndex (element, type) {
@@ -169,9 +182,21 @@ export default {
       display: flex;
       flex-direction: column;
       align-items: center;
+      background-color: #AAAAAA;
+  }
+  
+  .spinner {    
+    font-size: 18pt;
+    color: #101030;
+    height: calc(100vh - 50px);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
   }
   .page {
       width: 790pt;
+      background-color: white;
   }
 
   .text-hello {
@@ -181,6 +206,10 @@ export default {
     display: flex;
     justify-content: center;
     align-items: center;
+  }
+  
+  .text-document {
+    overflow: auto;
   }
 
   .highlight {

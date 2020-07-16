@@ -15,9 +15,7 @@ class GetFileUpload(Resource):
     """ endpont для загрузки файла от клиента """
 
     def __init__(self, **kwargs):
-        self.engine  = kwargs['engine']
-        Session = sessionmaker(bind=self.engine)
-        self.session = Session()
+        self.session  = kwargs['session']
 
         self.converter = Docx2HtmlConverter()
 
@@ -37,8 +35,8 @@ class GetFileUpload(Resource):
         file = request.files['file']
         if file and self.__allowed_file(file.filename):
             filename = f'common__{secure_filename(file.filename)}'
-            filepath = os.path.join(FILE_STORAGE_PATH, 'upload\\common\\')
-            file.save(os.path.join(FILE_STORAGE_PATH, 'upload\\common\\', filename))
+            filepath = os.path.join(FILE_STORAGE_PATH, 'upload/common/')
+            file.save(os.path.join(FILE_STORAGE_PATH, 'upload/common/', filename))
 
             file_ = self.session.query(UploadFiles).filter_by(name=filename, path=filepath).first()
             if not file_:
@@ -49,8 +47,6 @@ class GetFileUpload(Resource):
             self.converter.convert(file_.path, file_.name)
 
             json_data = self.converter.getJSON()
-
-            print(file_.id)
 
             json_ = self.session.query(InitDocumentJson).filter_by(json=json.dumps(json_data), init_file_id=file_.id).first()
             if not json_:
