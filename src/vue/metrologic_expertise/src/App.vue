@@ -11,6 +11,7 @@
             </div>
             <div class="content">
                 <app-content
+                  v-bind:showError="showServerError"
                   v-bind:showInitFileDialog="showInitFileDialog"
                   v-bind:documentText="documentHTML"
                   v-bind:showDocumentText="showDocumentText"
@@ -43,14 +44,23 @@ export default {
       API: 'http://192.168.1.237:5000',
       documentHTML: '',
       showDocumentText: false,
-      documentID: 0
+      documentID: 0,
+      showServerError: false
     }
   },
   methods: {
     getJson () {
-      return fetch(this.API + '/healthcheck')
-        .then(result => result.json())
-        .catch(error => this.$refs.error.setText(error))
+      let that = this
+      axios.get({
+        method: 'get',
+        url: this.API + '/report-gen'
+      }).then(function () {        
+          that.showServerError = false
+        })
+        .catch(function (error) {
+          that.showServerError = false
+          console.log(error)
+        })
     },
     toggleInitFileDialog () {
       this.showInitFileDialog = true
@@ -62,18 +72,21 @@ export default {
       this.submitFile()
     },
     onSendStruct: function (struct) {
+      let that = this
       const formData = new FormData()
       formData.append('data', JSON.stringify(struct))
       axios.post(this.API + '/text-edited',
         formData
       ).then(function () {
-        console.log('SUCCESS!!')
+        that.showServerError = false
       })
-        .catch(function () {
-          console.log('FAILURE!!')
+        .catch(function (error) {
+          that.showServerError = true
+          console.log(error)
         })
     },
     submitFile () {
+      let that = this
       const formData = new FormData()
       formData.append('file', this.selectedFile)
       axios.post(this.API + '/file-upload',
@@ -87,15 +100,15 @@ export default {
         this.showDocumentText = true
         this.documentHTML = data.data
         this.documentID = data.data.document_id
+        that.showServerError = false
       })
         .catch(function (error) {
-          console.log('submit FAILURE!!')
+          that.showServerError = true
           console.log(error)
-          console.log('------------------------------------------------')
         })
     },
     onReportGen: function () {
-      // var axios = require('axios');
+      let that = this
       const data = JSON.stringify({ data: { document_id: this.documentID } })
 
       const config = {
@@ -111,48 +124,25 @@ export default {
 
       axios(config)
         .then(function (response) {
-          // download(response.data, 'export-directorio.xlsx')
-          // console.log(JSON.stringify(response.data))
-          // console.log(response)
           const blob = new Blob([response.data], { type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', encoding: 'UTF-8' })
-          console.log(blob)
           const link = document.createElement('a')
           link.href = window.URL.createObjectURL(blob)
           link.download = 'Report.docx'
           link.click()
+          that.showServerError = false
         })
         .catch(function (error) {
+          that.showServerError = true
           console.log(error)
         })
-
-      // axios
-      //   .post(this.API + '/report-gen',
-      //     {
-      //       data: { document_id: this.documentID },
-      //       responseType: 'blob'
-      //     }
-      //   )
-      //   .then(function (response) {
-      //     console.log(response)
-      //     const blob = new Blob([response.data], { type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' })
-      //     console.log(blob)
-      //     const link = document.createElement('a')
-      //     link.href = window.URL.createObjectURL(blob)
-      //     link.download = 'Report.docx'
-      //     link.click()
-      //   })
-      //   .catch(function (error) {
-      //     console.log('submit FAILURE!!')
-      //     console.log(error.response.data)
-      //   })
     }
   },
   beforeMount () {
     this.getJson()
-      .then(data => {
-        console.log(data)
-      }
-      )
+    //   .then(data => {
+    //     console.log(data)
+    //   }
+    // )
   },
   mounted () {
     const fascript = document.createElement('script')

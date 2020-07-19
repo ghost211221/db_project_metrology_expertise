@@ -26,7 +26,6 @@ from docx.oxml.text.paragraph import CT_P
 from docx.oxml.table import CT_Tbl
 from docx.table import _Cell, Table
 from docx.text.paragraph import Paragraph
-from simplify_docx import simplify
 import xml.etree.ElementTree as ET
 import time
 import re
@@ -38,20 +37,34 @@ class Docx2HtmlConverter():
     def __init__(self):
 
         self.document = None
+        self.file_name = ''
         self.image_path = ''
 
+        self.body_json = []
         self.list_items = []
 
+        # номер страницы, понадобится когда получится сделать нормальное разбиение по страницам
         self.page = 1
-        self.firstPage = True
+
+        # нумерация основых элементов документа на странице
         self.paragraph = 1
+        self.header = 1
+        self.ul = 1
+        self.img = 1
+        self.table = 1
 
-        self.table_n = 0
+        # аналогично, но для таблицы
+        self.t_paragrpah = 1
+        self.t_header = 1
+        self.t_ul = 1
+        self.t_img = 1
+        self.t_row = 1
+        self.t_cell = 1
 
-        self.body = f'<div class="page page-{self.page}" style="width: 975px;">\n'
+        self.li = 1
+        self.br = 1
 
-        self.body_json = []
-
+        # сразу добавляем первую страницу
         self.__addNewPage()
 
 
@@ -62,6 +75,7 @@ class Docx2HtmlConverter():
 
             image_path will be a directory to store image files; if the directory does not exist it will be created
         """
+        self.file_name = file
         splitname = re.split('[. ]', file)
         if len(splitname) > 2:
             self.image_path =  ''.join(splitname[:2]) + '-images'
@@ -75,51 +89,82 @@ class Docx2HtmlConverter():
 
         self.__covertDocument()
 
-    def getHtml(self):
-        """ возврат сгенеренного html кода """
-
-        return self.body
-
     def getJSON(self):
         """ возврат сгенеренного JSON """
 
         return self.body_json
 
+    def __chkParent(self, root, parent):
+        """ проверка то parent в root существует """
+        if 'children' in root:
+            for child in root['children']:
+                print(child['id'], parent)
+                if child['id'] == parent:
+                    return True
+
+        return False
+
+
+    def __elemIdxInRoot(self, root, _id):
+
+        if root.get('chidren'):
+            for child in root['children']:
+                if child['id'] == _id:
+                    return root['children'].index(child)
+
+    def __getParentById(self, root, id):
+        for item in root:
+            if item['id'] == id:
+                return item
+
+
     def __covertDocument(self):
         for block in self.__iter_block_items(self.document):
-            if isinstance(block, Paragraph):
-                self.__detectPageBreakBlock(block)
+            parent = self.__getParentById(self.body_json, f'page-{self.page}')
+
+            if 'w:drawing' in block._element.xml:
+                rIdx = re.search(r'rId[0-9]+', block._element.xml)[0]
+                blob_ = self.document.inline_shapes.part.related_parts[rIdx]._blob
+
+                self.__addImage(parent, rIdx, blob_)
+
+            elif isinstance(block, Paragraph):
+                # self.__detectPageBreakBlock(block)
                 tmp_heading_type = self.__get_heading_type(block)
 
-                if re.match("List\sParagraph", tmp_heading_type):
-                    self.list_items.append('<li ref="target">' + block.text + '</li>\n')
+                if re.match(r"List\sParagraph", tmp_heading_type) or 'w:ilvl' in block._element.xml and 'w:numId w:val="2"' in block._element.xml \
+                    and 'w:numPr' in block._element.xml and 'w:pPr' in block._element.xml:
+
+                    if parent and not self.__chkParent(parent, f'page-{self.page} ul-{self.ul}'):
+                        self.__addNewUlToParent(parent)
+
+                    self.list_items.append(block.text)
 
                 elif not block.text.strip():
                     # переводим пустые строку документа в пустые строки
-                    self.list_items.append("<br/>\n")
+                    self.__addBrToParent(parent)
 
                 else:
-                    images = self.__render_image(self.document, block, self.image_path, self.image_path)
                     if len(self.list_items) > 0:
-                        self.body += self.__render_list_items(self.list_items)
-                        self.list_items = []
-
-                    if len(images) > 0:
-                        self.body += images
-
+                        self.__add_list_items(
+                            self.list_items,
+                            self.__getParentById(parent['children'], f'page-{self.page} ul-{self.ul}')
+                        )
+                        
                     else:
                         # modified to use a different outer_tag if a 'Heading' style is found in the original paragraph
                         if 'Heading' in tmp_heading_type:
-                            outer_tag = 'h' + tmp_heading_type.split(' ')[-1]
+                            self.__add_heading(parent, block.text, tmp_heading_type.split(' ')[-1])
 
                         else:
-                            outer_tag = 'p'
-                        self.body += self.__render_runs(block, outer_tag)
+                            self.__add_paragraph(parent, block.text)
 
             elif isinstance(block, Table):
-                self.body += self.__render_table(block, self.document)
+                print('adding table')
+                self.__addNewTable(parent, 'w:tcBorders' in block._element.xml)
+                table_parent = self.__getParentById(parent['children'], f'{parent["id"]} table-{self.table}')
+                self.__prepare_table(block, table_parent)
 
-        self.body += '</div>\n'
 
     def __iter_block_items(self, parent):
         """
@@ -156,141 +201,108 @@ class Docx2HtmlConverter():
 
     def __detectPageBreak(self, block, blockType='paragraph'):
         """ поиск разрыва строки в Paragraph run или в table row"""
-        # if 'lastRenderedPageBreak' in block._element.xml or 'w:br' in block._element.xml and 'type="page"' in block._element.xml:
-        if 'w:br' in block._element.xml and 'type="page"' in block._element.xml:
+        # pass
+        if 'lastRenderedPageBreak' in block._element.xml or 'w:br' in block._element.xml and 'type="page"' in block._element.xml:
             self.page += 1
-            self.__addNewPage()
-            self.paragraph = 1
-            if blockType == 'paragraph':
-                self.body += f'</div>\n<div class="page page-{self.page}" style="width: 975px;">\n'
-            else:
-                self.body += f'<\ttbody>\n</div>\n<div class="page page-{self.page}" style="width: 975px;">\t<table>\n\t<tbody>\n'
+            # self.__addNewPage()
+            # self.paragraph = 1
+            # if blockType == 'paragraph':
+            #     self.body += f'</div>\n<div class="page page-{self.page}" style="width: 975px;">\n'
+            # else:
+            #     self.body += f'<\ttbody>\n</div>\n<div class="page page-{self.page}" style="width: 975px;">\t<table>\n\t<tbody>\n'
+                
 
     def __get_heading_type(self, block):
         return block.style.name
 
-    def __render_image(self, document, par, dir_path, book_id):
-        # get all of the images in a paragraph 
-        # :param par: a paragraph object from docx
-        # :return: a list of r:embed 
-        
-        ids = []
-        root = ET.fromstring(par._p.xml)
-        namespace = {
-                 'a':"http://schemas.openxmlformats.org/drawingml/2006/main", \
-                 'r':"http://schemas.openxmlformats.org/officeDocument/2006/relationships", \
-                 'wp':"http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing"}
-        inlines = root.findall('.//wp:inline',namespace)
-        for inline in inlines:
-            imgs = inline.findall('.//a:blip', namespace)
-            for img in imgs:     
-                id = img.attrib['{{{0}}}embed'.format(namespace['r'])]
-                ids.append(id)
-        inlines = root.findall('.//wp:anchor',namespace)
-        for inline in inlines:
-            imgs = inline.findall('.//a:blip', namespace)
-            for img in imgs:     
-                id = img.attrib['{{{0}}}embed'.format(namespace['r'])]
-                ids.append(id)
-        response = ""
-        if len(ids) > 0:
-            for id in ids:
-                image_part = document.part.related_parts[id]
-                millis = int(round(time.time() * 1000))
-                file_name = str(id) + "-" + str(book_id) + "-" + str(millis) + ".png"
-                fr = open(dir_path + "/" + file_name, "wb")
-                fr.write(image_part._blob)
-                fr.close()
-                response += "\t<img border='1' src='" + dir_path + "/" + file_name + "' class='img-responsive'/>\n"
-        return response
+    def __add_list_items(self, items, parent):
+        if parent and 'children' in parent:
+            for item in items:
+                parent['children'].append(
+                    {
+                        'type': 'li',
+                        'class': f'listitem listitem-{self.li}',                
+                        'ref': f'{parent["id"]} listitem-{self.li}',
+                        'style': '',
+                        'text': item
+                    }
+                )
 
-    def __render_list_items(self, items):
-        html = '\t<ul ref="target">\n'
-        for item in items:
-            html += f'\t\t{item}'
+                self.li +=  1
 
-        html += "\t</ul>\n"
-
-        return html
+            self.list_items = []
+            self.ul += 1
+            self.li = 1
 
     
-    def __render_runs(self, block, outer_tag='p'):
-        """ Modified to use a different outer_tag if a 'Heading' style is found in the original paragraph """
-        html = "\t<" + outer_tag + ' style="max-width: 975px" ref="target">\n'
-
-        text_ = ''
-        for text in block.text.splitlines():
-            if 'w:jc' in block._element.xml and 'val="center"'  in block._element.xml:
-                html += f'\t\t<center>{text}</center>'
-            else:
-                html += f'\t\t{text}'
-                
-            text_ += text
-
-        html += "\t</" + outer_tag + ">\n"
-        self.__addPToPage(text_)
-
-        return html
-
-    
-    def __render_table(self, block, document):
+    def __prepare_table(self, block, root):
         """ Modified to treat cell content as a set of blocks to process  """
         table = block
 
-        html = ''
-        css = ''
-
-        if self.__has_borders(block):
-            css += 'border-spacing: 0px;'
-            html = f'\t<table class="table table-bordered" border="1" style="{css}" ref="target">\n'
-        else:
-            html = f'\t<table class="table" style="{css}">\n'
-
         for row in table.rows:
-            self.__detectPageBreakBlock(block, blockType='table')
-            html += '\t\t<tr ref="target">\n'
+
+            self.__addNewRow(root)
+
+            parent = self.__getParentById(root['children'], f'{root["id"]} row-{self.t_row}')
+
             for cell in row.cells:
-                html += "\t\t\t<td>\n"
-                # --- 
-                cbody = ""
-                clist_items = []
+                self.__addNewCell(parent)
+
+                parent_ = self.__getParentById(parent['children'], f'{parent["id"]} cell-{self.t_cell}')
+
                 for cblock in self.__iter_block_items(cell):
-                    if isinstance(cblock, Paragraph):
+                    if 'w:drawing' in cblock._element.xml:
+                        rIdx = re.search(r'rId[0-9]+', cblock._element.xml)[0]
+                        blob_ = self.document.inline_shapes.part.related_parts[rIdx]._blob
+
+                        self.__addImage(parent_, rIdx, blob_)
+
+                    elif isinstance(cblock, Paragraph):
+                        # self.__detectPageBreakBlock(block)
                         tmp_heading_type = self.__get_heading_type(cblock)
-                        if re.match("List\sParagraph", tmp_heading_type):
-                            clist_items.append('\t\t\t\t<li ref="target">' + cblock.text + "</li>\n")
-                        
+
+                        if re.match(r"List\sParagraph", tmp_heading_type) or 'w:ilvl' in cblock._element.xml and 'w:numId w:val="2"' in cblock._element.xml \
+                            and 'w:numPr' in cblock._element.xml and 'w:pPr' in cblock._element.xml:
+
+                            if parent_ and not self.__chkParent(parent_, f'{root["id"]} ul-{self.ul}'):
+                                self.__addNewUlToParent(parent_)
+
+                            self.list_items.append(cblock.text)
+
+                        elif not cblock.text.strip():
+                            # переводим пустые строку документа в пустые строки
+                            self.__addBrToParent(parent_)
+
                         else:
-                            images = self.__render_image(document, cblock, self.image_path,self.image_path)
-                            if len(clist_items) > 0:
-                                cbody += self.__render_list_items(clist_items)
-                                clist_items = []
-
-                            if len(images) > 0:
-                                cbody = cbody + images
-
+                            if len(self.list_items) > 0:
+                                self.__add_list_items(
+                                    self.list_items,
+                                    self.__getParentById(parent_['children'], f'{root["id"]} ul-{self.ul}')
+                                )
+                                
                             else:
-                                cbody += self.__render_runs(cblock)
+                                # modified to use a different outer_tag if a 'Heading' style is found in the original paragraph
+                                if 'Heading' in tmp_heading_type:
+                                    self.__add_heading(parent_, cblock.text, tmp_heading_type.split(' ')[-1])
+
+                                else:
+                                    self.__add_paragraph(parent_, cblock.text)
 
                     elif isinstance(cblock, Table):
-                        cbody += self.__render_table(cblock, document, self.image_path)
+                        self.__addNewTable(parent_, 'w:tcBorders' in cblock._element.xml)
+                        table_parent = self.__getParentById(parent_['children'], f'{root["id"]} table-{self.table}')
+                        self.__prepare_table(cblock, table_parent)
+
+                self.t_cell += 1
+
+
+            self.t_row += 1
+
+        self.table += 1
                 
-                html += cbody + " "
-                html += "\t\t\t</td>\n"
-
-            html += "\t\t</tr>\n"
-
-        html += "\t</table>\n"
-
-        return html
-
-    def __has_borders(self, block):
-        return 'w:tcBorders' in block._element.xml
 
     def __get_block_style(self, block):
         css = ''
-
-        styles = block.style
 
         return css
 
@@ -298,6 +310,7 @@ class Docx2HtmlConverter():
         self.body_json.append(
             {
                 'type': 'div',
+                'id': f'page-{self.page}',
                 'class': f'page page-{self.page}',
                 'ref': f'page-{self.page}',
                 'style': 'width: 975px',
@@ -305,12 +318,113 @@ class Docx2HtmlConverter():
             }
         )
 
-    def __addPToPage(self, text):
-        self.body_json[self.page-1]['children'].append(
+    def __addNewTable(self, root, borders=True):
+        root['children'].append(
+            {
+                'type': 'table',
+                'id': f'{root["id"]} table-{self.table}',
+                'class': f'table table-{self.table}' + ' table-bordered' if borders else '',
+                'ref': f'{root["id"]} table-{self.table}',
+                'style': '',
+                'children': []
+            }
+        )
+
+        self.t_row = 1
+
+    def __addNewRow(self, root):
+        root['children'].append(
+            {
+                'type': 'row',
+                'id': f'{root["id"]} row-{self.t_row}',
+                'class': f'row row-{self.t_row}',
+                'ref': f'{root["id"]} row-{self.t_row}',
+                'style': '',
+                'children': []
+            }
+        )
+
+        self.t_cell = 1
+
+    def __addNewCell(self, root):
+        root['children'].append(
+            {
+                'type': 'cell',
+                'id': f'{root["id"]} cell-{self.t_cell}',
+                'class': f'cell cell-{self.t_cell}',
+                'ref': f'{root["id"]} cell-{self.t_cell}',
+                'style': '',
+                'children': []
+            }
+        )
+
+    def __addNewUlToParent(self, root):
+        root['children'].append(
+            {
+                'type': 'ul',
+                'id': f'{root["id"]} ul-{self.ul}',
+                'class': f'ul ul-{self.ul}',
+                'ref': f'{root["id"]} ul-{self.ul}',
+                'style': '',
+                'children': []
+            }
+        )
+
+    def __addBrToParent(self, root):
+        root['children'].append(
+            {
+                'type': 'br',
+                'id': f'{root["id"]} br-{self.br}',
+                'class': f'br br-{self.br}',
+                'ref': f'{root["id"]} br-{self.br}',
+                'style': '',
+                'children': []
+            }
+        )
+
+        self.br += 1
+
+    def __add_heading(self, root, text, type):
+        root['children'].append(
+            {
+                'type': f'h{type}',
+                'id': f'{root["id"]} header-{self.header}',
+                'class': f'h{type} h{type}-{self.header}',
+                'ref': f'{root["id"]} header-{self.header}',
+                'style': '',
+                'text': text
+            }
+        )
+
+        self.header += 1
+
+    def __addImage(self, root, rIdx,  image):
+        millis = int(round(time.time() * 1000))
+        file_name = self.file_name.split('.')[0] + "-" + rIdx + "-" + str(millis) + ".png"
+        fr = open(self.image_path + "/" + file_name, "wb")
+        fr.write(image)
+        fr.close()
+
+        root['children'].append(
+            {
+                'type': 'img',
+                'id': f'{root["id"]} img-{self.img}',
+                'class': f'img img-responsive img-{self.img}',
+                'ref': f'{root["id"]} img-{self.img}',
+                'style': '',
+                'image': f'{self.image_path}/{file_name}'
+            }
+        )
+
+        self.img += 1
+
+    def __add_paragraph(self, root, text):
+        root['children'].append(
             {
                 'type': 'p',
-                'class': f'paragraph paragraph-{self.paragraph}',                
-                'ref': f'page-{self.page}-paragraph-{self.paragraph}',
+                'id': f'{root["id"]} paragraph-{self.paragraph}',
+                'class': f'paragraph paragraph-{self.paragraph}',
+                'ref': f'{root["id"]} paragraph-{self.paragraph}',
                 'style': '',
                 'text': text
             }
@@ -318,57 +432,7 @@ class Docx2HtmlConverter():
 
         self.paragraph += 1
 
-# if __name__ == '__main__':
-
-    
-#     converter = Docx2HtmlConverter()
-
-#     converter.convert('D:\\design\\GeekBrains\\group_project\\db_project_metrology_expertise\\file_storage\\upload\\common\\', 'common__init_document.docx')
-#     s = converter.getHtml()
-
-#     with open('text.html', 'w', encoding='utf8') as f:
-#         f.write(s)
-        
-class Docx2JSONConverter():
-
-    def __init__(self):
-
-        self.document = None
-
-        self.body = {}
-
-    def convert(self, dir_path, file):
-
-        self.document = Document(dir_path + file)
-
-        self.__covertDocument()
-
-    def getHtml(self):
-        """ возврат сгенеренного html кода """
-
-        return self.body
-
-    def __covertDocument(self):
-
-        self.body = simplify(
-            self.document, 
-            {
-                "ignore-empty-paragraphs": False,
-                "ignore-empty-text": False,
-                "remove-leading-white-space": False,
-            }
-        )
-
 if __name__ == '__main__':
-
-    # # read in a document 
-    # my_doc = docx.Document('D:\\design\\GeekBrains\\group_project\\db_project_metrology_expertise\\files\\init_document.docx')
-
-    # # coerce to JSON using the standard options
-    # my_doc_as_json = simplify(my_doc)
-
-    # # or with non-standard options
-    # # my_doc_as_json = simplify(my_doc,{"remove-leading-white-space":False})
 
     import pprint
     import json
@@ -377,14 +441,15 @@ if __name__ == '__main__':
 
     converter = Docx2HtmlConverter()
 
-    converter.convert('/home/ghost/design/programming/python/geekbrains/group_project/db_project_metrology_expertise/files/', 'init_document.docx')
+    # converter.convert('./', 'file-sample_100kB.docx')
+    converter.convert('./', 'init_document.docx')
 
     # pp.pprint(converter.getJSON())
     # doc = Document('/home/ghost/design/programming/python/geekbrains/group_project/db_project_metrology_expertise/files/init_document.docx')
     # with open('xml.txt', 'w', encoding='utf8') as f:
     #         f.write(doc._element.xml)
-    # with open('json.txt', 'w', encoding='utf8') as f:
-    #         f.write(json.dumps(xmltodict.parse(doc._element.xml), indent=4))
+    with open('json.txt', 'w', encoding='utf8') as f:
+            f.write(json.dumps(converter.getJSON(), indent=4))
     
     
 
