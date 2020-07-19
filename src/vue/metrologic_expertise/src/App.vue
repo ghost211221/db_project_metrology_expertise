@@ -11,7 +11,7 @@
             </div>
             <div class="content">
                 <app-content
-                  v-bind:showError="showServerError"
+                  v-bind:serverError="showServerError"
                   v-bind:showInitFileDialog="showInitFileDialog"
                   v-bind:documentText="documentHTML"
                   v-bind:showDocumentText="showDocumentText"
@@ -51,14 +51,12 @@ export default {
   methods: {
     getJson () {
       let that = this
-      axios.get({
-        method: 'get',
-        url: this.API + '/report-gen'
-      }).then(function () {        
+      return fetch(this.API + '/healthcheck')
+      .then(function () {        
           that.showServerError = false
         })
         .catch(function (error) {
-          that.showServerError = false
+          that.showServerError = true
           console.log(error)
         })
     },

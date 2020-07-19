@@ -1,10 +1,12 @@
 <template>
     <div class="content">
+        <div class="content serverError" v-if="serverError">
+          Нет связи с сервером.
+          Повторите попытку позже.
+        </div>
         <p v-if="showInitFileDialog">Выберите файл<file-select v-model="file" v-on:input="onFileSelect"></file-select></p>
-        <!-- <p v-if="file">{{file.name}}</p> -->
-        <!-- <div class="text-document" v-if="showDocumentText" v-html="documentText"></div> -->
         
-        <div class="spinner" v-if="!showInitFileDialog && !showDocumentText">
+        <div class="spinner" v-if="!showInitFileDialog && !showDocumentText && !canShowHello()">
           <p>
             Идет загрузка документа.<br/>
             <br/>
@@ -12,44 +14,18 @@
           <Spinner></Spinner>          
          </div>
 
+         <MainDocComp v-if="showDocumentText"
+          v-bind:docJSON="documentText"
+           :key="documentText" 
+         ></MainDocComp>
+
         <TextEditModal
           v-bind:text="textModalEdit"
           v-show="isModalVisible "
           v-on:save="closeModal"
           v-on:close="closeModal">
         </TextEditModal>
-        <div class="text-document" v-if="showDocumentText">
-          <div  v-for="item in documentText.data" :key="item.ref">
-            <div
-                v-bind:class="item.class"
-                v-bind:style="item.style"
-                v-bind:ref="item.ref">
-
-              <div v-for="child in item.children" :key="child.ref">
-                <p
-                  v-if="child.type === 'p'"
-                  v-bind:ref="child.ref"
-                  v-bind:style="child.style"
-                  v-bind:class="child.class"
-                  v-on:mousedown="onmousedown"
-                  v-on:mouseup="onmouseup">
-
-                  {{ child.text }}
-                </p>
-              </div>
-            </div>
-
-            <!-- <p  class="document-paragraph"
-                v-bind:ref="elementIndex(item, 'paragraph')"
-                v-bind:class="elementIndex(item, 'paragraph')"
-                v-if="item.TYPE == 'paragraph' && item.VALUE[0]"
-                v-on:mousedown="onmousedown"
-                v-on:mouseup="onmouseup">
-                  {{ item.VALUE[0].VALUE }}
-            </p> -->
-            <!-- <br v-if="item.TYPE == 'paragraph' && !item.VALUE[0]"/> -->
-          </div>
-        </div>
+        
         <div class="text-hello" v-if="canShowHello()">
           <p>
             Добро пожаловать! <br/>
@@ -63,6 +39,7 @@
 <script>
 import FileSelect from './FileSelect.vue'
 import TextEditModal from './TextEditModal'
+import MainDocComp from './documentComponents/MainDocComp'
 import Spinner from 'vue-simple-spinner'
 
 export default {
@@ -70,11 +47,13 @@ export default {
   props: [
     'showInitFileDialog',
     'documentText',
-    'showDocumentText'
+    'showDocumentText',
+    'serverError'
   ],
   components: {
     FileSelect,
     TextEditModal,
+    MainDocComp,
     Spinner
   },
   data () {
@@ -91,50 +70,9 @@ export default {
     }
   },
   methods: {
-    onmousedown (event) {
-      this.firstEl = event.target.className
-      console.log(event)
-    },
-    onmouseup (event) {
-      this.secondEl = event.target.className
-      this.textModalInit = window.getSelection().toString()
-      this.textModalEdit = window.getSelection().toString()
-      this.isModalVisible = true
-      this.highlight()
-    },
-    getSelectedRange () {
-      if (window.getSelection) {
-        const sel = window.getSelection()
-        if (sel.getRangeAt && sel.rangeCount) {
-          this.selectedRange = sel.getRangeAt(0)
-        }
-      } else if (document.selection) {
-        this.selectedRange = document.selection.createRange()
-      }
-    },
-    surroundSelection () {
-      const span = document.createElement('span')
-      span.className = 'highlight'
-      span.style.backgroundColor = '#D05555'
-      // span.addEventListener("click", () => {
-      //   console.log('click');
-      // })
-      if (window.getSelection) {
-        var sel = window.getSelection()
-        if (sel.rangeCount) {
-          var range = this.selectedRange.cloneRange()
-          range.surroundContents(span)
-          sel.removeAllRanges()
-          sel.addRange(range)
-        }
-      }
-    },
-    highlight () {
-      console.log('try to highlight')
-      this.getSelectedRange()
-      if (this.selectedRange && this.textModalInit) {
-        this.surroundSelection()
-      }
+    onFileSelect () {
+      this.canShowSpinner = true
+      this.$emit('onFileSelect', this.file)
     },
     canShowHello () {
       return !this.showInitFileDialog && !this.documentText && !this.file
@@ -154,17 +92,9 @@ export default {
         initText: this.textModalInit,
         editText: editedText
       }
-      console.log(this.editedTextStruct)
       if (this.textModalInit !== editedText) {
         this.$emit('sendStruct', this.editedTextStruct)
       }
-    },
-    onFileSelect () {
-      this.canShowSpinner = true
-      this.$emit('onFileSelect', this.file)
-    },
-    elementIndex (element, type) {
-      return type + '-' + this.documentText.indexOf(element)
     }
   },
   mounted () {
@@ -184,6 +114,14 @@ export default {
       align-items: center;
       background-color: #AAAAAA;
   }
+
+  .serverError {
+    justify-content: center;
+    font-size: 24pt;
+    background-color: #AA3030;
+    height: 10vh;
+    width: calc(100vw - 200px);
+  }
   
   .spinner {    
     font-size: 18pt;
@@ -194,10 +132,6 @@ export default {
     justify-content: center;
     align-items: center;
   }
-  .page {
-      width: 790pt;
-      background-color: white;
-  }
 
   .text-hello {
     font-size: 18pt;
@@ -206,13 +140,5 @@ export default {
     display: flex;
     justify-content: center;
     align-items: center;
-  }
-  
-  .text-document {
-    overflow: auto;
-  }
-
-  .highlight {
-    background-color: #D05555;
   }
 </style>
