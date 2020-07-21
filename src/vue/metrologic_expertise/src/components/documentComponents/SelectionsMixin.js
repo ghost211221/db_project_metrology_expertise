@@ -1,25 +1,19 @@
-var SelevtionsMixin = {
+export const SelectionsMixin = {
   data () {
     return {
-      isModalVisible: false,
-      textModalInit: '',
-      textModalEdit: '',
       firstEl: '',
       secondEl: '',
       selectedRange: null,
-      ccanCreateSpan: false,
+      ccanCreateSpan: false
     }
   },
   methods: {
     onmousedown (event) {
       this.firstEl = event.target.className
-      console.log(event)
     },
     onmouseup (event) {
       this.secondEl = event.target.className
-      this.textModalInit = window.getSelection().toString()
-      this.textModalEdit = window.getSelection().toString()
-      this.isModalVisible = true
+      this.$emit('textSelected', window.getSelection().toString(), true)
       this.highlight()
     },
     getSelectedRange () {
@@ -36,9 +30,6 @@ var SelevtionsMixin = {
       const span = document.createElement('span')
       span.className = 'highlight'
       span.style.backgroundColor = '#D05555'
-      // span.addEventListener("click", () => {
-      //   console.log('click');
-      // })
       if (window.getSelection) {
         var sel = window.getSelection()
         if (sel.rangeCount) {
@@ -52,8 +43,9 @@ var SelevtionsMixin = {
     highlight () {
       console.log('try to highlight')
       this.getSelectedRange()
-      if (this.selectedRange && this.textModalInit) {
+      if (this.selectedRange && this.highlightAllow) {
         this.surroundSelection()
       }
     }
+  }
 }

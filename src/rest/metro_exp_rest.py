@@ -1,3 +1,5 @@
+#!/home/ghost/design/programming/python/geekbrains/group_project/expenv/bin/python3.7
+
 import os
 
 import hashlib

@@ -7,69 +7,18 @@
                 v-bind:ref="item.ref">
 
               <div v-for="child in item.children" :key="child.ref">
-                <!-- <h1
-                  v-if="child.type === 'p'"
-                  v-bind:ref="child.ref"
-                  v-bind:style="child.style"
-                  v-bind:class="child.class"
-                  v-on:mousedown="onmousedown"
-                  v-on:mouseup="onmouseup">
-                  {{ child.text }}
-                </h1>
-                <h2
-                  v-if="child.type === 'p'"
-                  v-bind:ref="child.ref"
-                  v-bind:style="child.style"
-                  v-bind:class="child.class"
-                  v-on:mousedown="onmousedown"
-                  v-on:mouseup="onmouseup">
-                  {{ child.text }}
-                </h2>
-                <h3
-                  v-if="child.type === 'p'"
-                  v-bind:ref="child.ref"
-                  v-bind:style="child.style"
-                  v-bind:class="child.class"
-                  v-on:mousedown="onmousedown"
-                  v-on:mouseup="onmouseup">
-                  {{ child.text }}
-                </h3>
-                <h4
-                  v-if="child.type === 'p'"
-                  v-bind:ref="child.ref"
-                  v-bind:style="child.style"
-                  v-bind:class="child.class"
-                  v-on:mousedown="onmousedown"
-                  v-on:mouseup="onmouseup">
-                  {{ child.text }}
-                </h4> -->
-                <p
-                  v-if="child.type === 'p'"
-                  v-bind:ref="child.ref"
-                  v-bind:style="child.style"
-                  v-bind:class="child.class"
-                  v-on:mousedown="onmousedown"
-                  v-on:mouseup="onmouseup">
-                  {{ child.text }}
-                </p>
-                <!-- <ul 
-                  v-if="child.type === 'ul'"
-                  v-bind:ref="child.ref"
-                  v-bind:class="child.class"
-                  v-bind:style="child.style"
-                  v-on:mousedown="onmousedown"
-                  v-on:mouseup="onmouseup">
-                  
-                  <li v-for="_li in child.children" :key="_li.ref"
-                    v-if="_li._li === 'li'"
-                    v-bind:ref="_li.ref"
-                    v-bind:class="_li.class"
-                    v-bind:style="_li.style"
-                    v-on:mousedown="onmousedown"
-                    v-on:mouseup="onmouseup">
-                    {{  _li.text }}
-                  </li>
-                </ul> -->
+
+                <ParagraphComp
+                  v-if="child.type == 'p'"
+                  :text_="child.text"
+                  :ref_="child.ref"
+                  :style_="child.style"
+                  :class_="child.class"
+                  :highlightAllow="canCreateSpan"
+                  @textSelected="onTextSelected"
+                >
+                </ParagraphComp>
+
               </div>
             </div>
           </div>
@@ -77,22 +26,43 @@
 </template>
 
 <script>
-// import ParagraphComp from './ParagraphComp.vue'
+
+import ParagraphComp from './ParagraphComp.vue'
 
 export default {
 
   name: 'MainDocComp',
+
   props: [
-    'docJSON'
+    'docJSON',
+    'canCreateSpan'
   ],
+
+  mixins: [
+  ],
+
   components: {
-    // ParagraphComp
+    ParagraphComp
   },
 
   data () {
     return {
 
     }
+  },
+
+  methods: {
+    onTextSelected (selectedText, showModal) {
+      this.$emit('textSelected', selectedText, showModal)
+    }
+  },
+
+  mounted () {
+
+  },
+
+  computed: {
+
   }
 }
 </script>

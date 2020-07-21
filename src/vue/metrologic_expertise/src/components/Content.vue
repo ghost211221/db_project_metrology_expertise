@@ -12,16 +12,18 @@
             <br/>
           </p>
           <Spinner></Spinner>          
-         </div>
+        </div>
 
-         <MainDocComp v-if="showDocumentText"
-          v-bind:docJSON="documentText"
-           :key="documentText" 
-         ></MainDocComp>
+        <MainDocComp v-if="showDocumentText"
+          :docJSON="documentText"
+          :canCreateSpan="canCreateSpan"
+          @textSelected="onTextSelected"
+
+        ></MainDocComp>
 
         <TextEditModal
           v-bind:text="textModalEdit"
-          v-show="isModalVisible "
+          v-show="isModalVisible"
           v-on:save="closeModal"
           v-on:close="closeModal">
         </TextEditModal>
@@ -66,7 +68,7 @@ export default {
       secondEl: '',
       editedTextStruct: {},
       selectedRange: null,
-      ccanCreateSpan: false,
+      canCreateSpan: false,
     }
   },
   methods: {
@@ -79,6 +81,11 @@ export default {
     },
     canShowFileDialog () {
       return this.showInitFileDialog
+    },
+    onTextSelected (selectedText, showModal) {
+      this.isModalVisible = showModal
+      this.textModalInit = selectedText
+      this.textModalEdit = selectedText
     },
     showModal () {
       this.isModalVisible = true
@@ -93,7 +100,10 @@ export default {
         editText: editedText
       }
       if (this.textModalInit !== editedText) {
+        this.canCreateSpan = true
         this.$emit('sendStruct', this.editedTextStruct)
+      } else {
+        this.canCreateSpan = false        
       }
     }
   },
