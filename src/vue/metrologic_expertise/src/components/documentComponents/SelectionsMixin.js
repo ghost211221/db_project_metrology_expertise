@@ -4,7 +4,7 @@ export const SelectionsMixin = {
       firstEl: '',
       secondEl: '',
       selectedRange: null,
-      ccanCreateSpan: false
+      range: null
     }
   },
   methods: {
@@ -14,7 +14,7 @@ export const SelectionsMixin = {
     onmouseup (event) {
       this.secondEl = event.target.className
       this.$emit('textSelected', window.getSelection().toString(), true)
-      this.highlight()
+      // this.highlight()
     },
     getSelectedRange () {
       if (window.getSelection) {
@@ -41,11 +41,20 @@ export const SelectionsMixin = {
       }
     },
     highlight () {
-      console.log('try to highlight')
       this.getSelectedRange()
+      console.log(this.selectedRange)
+      console.log(this.highlightAllow)
       if (this.selectedRange && this.highlightAllow) {
         this.surroundSelection()
+        this.$emit('textHighlighted')
       }
     }
+  },
+  watch: {
+    highlightAllow: function () {
+      if (this.highlightAllow) {
+        this.highlight()
+      }
+    },
   }
 }
