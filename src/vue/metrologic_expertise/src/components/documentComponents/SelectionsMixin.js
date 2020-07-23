@@ -4,17 +4,20 @@ export const SelectionsMixin = {
       firstEl: '',
       secondEl: '',
       selectedRange: null,
-      range: null
+      range: null,
+      spanNum: 0,
+      selectedId: ''
     }
   },
   methods: {
     onmousedown (event) {
       this.firstEl = event.target.className
+      this.selectedId = event.target.id
     },
     onmouseup (event) {
       this.secondEl = event.target.className
+      this.highlight()
       this.$emit('textSelected', window.getSelection().toString(), true)
-      // this.highlight()
     },
     getSelectedRange () {
       if (window.getSelection) {
@@ -29,7 +32,11 @@ export const SelectionsMixin = {
     surroundSelection () {
       const span = document.createElement('span')
       span.className = 'highlight'
+      const spanId = this.selectedId + ' span-' + this.spanNum
+      span.setAttribute('id', spanId)
       span.style.backgroundColor = '#D05555'
+      this.$emit('addedSpan', spanId)
+      this.spanNum += 1
       if (window.getSelection) {
         var sel = window.getSelection()
         if (sel.rangeCount) {
@@ -42,19 +49,16 @@ export const SelectionsMixin = {
     },
     highlight () {
       this.getSelectedRange()
-      console.log(this.selectedRange)
-      console.log(this.highlightAllow)
-      if (this.selectedRange && this.highlightAllow) {
+      if (this.selectedRange) {
         this.surroundSelection()
         this.$emit('textHighlighted')
       }
     }
-  },
-  watch: {
-    highlightAllow: function () {
-      if (this.highlightAllow) {
-        this.highlight()
-      }
-    },
   }
+  // watch: {
+  //   highlightAllow: function () {
+  //     if (this.highlightAllow) {
+  //       this.highlight()
+  //   },
+  // }
 }

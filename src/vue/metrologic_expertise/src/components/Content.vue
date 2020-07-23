@@ -17,14 +17,16 @@
         <MainDocComp v-if="showDocumentText"
           :docJSON="documentText"
           :canCreateSpan="canCreateSpan"
+          @addedSpan="onAddedSpan"
           @textSelected="onTextSelected"
+          @textHighlighted="$emit('textHighlighted')"
 
         ></MainDocComp>
 
         <TextEditModal
           v-bind:text="textModalEdit"
           v-show="isModalVisible"
-          v-on:save="closeModal"
+          v-on:save="saveModal"
           v-on:close="closeModal">
         </TextEditModal>
         
@@ -69,6 +71,7 @@ export default {
       editedTextStruct: {},
       selectedRange: null,
       canCreateSpan: false,
+      lastSpanId: ''
     }
   },
   methods: {
@@ -90,7 +93,7 @@ export default {
     showModal () {
       this.isModalVisible = true
     },
-    closeModal (editedText) {
+    saveModal (editedText) {
       this.isModalVisible = false
       this.editedTextStruct = {
         document_id: this.documentText.document_id,
@@ -100,11 +103,21 @@ export default {
         editText: editedText
       }
       if (this.textModalInit !== editedText) {
-        this.canCreateSpan = true
         this.$emit('sendStruct', this.editedTextStruct)
       } else {
-        this.canCreateSpan = false        
+        this.deleteSpan()
       }
+    },
+    closeModal () {
+      this.isModalVisible = false  
+    },
+    textHighlighted () {
+    },
+    onAddedSpan (spanId) {
+      this.lastSpanId = spanId
+    },
+    deleteSpan () {
+      document.getElementById(this.lastSpanId).replaceWith(document.getElementById(this.lastSpanId).innerText)
     }
   },
   mounted () {

@@ -78,9 +78,9 @@ class Docx2HtmlConverter():
         self.file_name = file
         splitname = re.split('[. ]', file)
         if len(splitname) > 2:
-            self.image_path =  ''.join(splitname[:2]) + '-images'
+            self.image_path =  dir_path + ''.join(splitname[:2]) + '-images'
         else:
-            self.image_path = splitname[0] + '-images'
+            self.image_path = dir_path + splitname[0] + '-images'
 
         if not os.path.isdir(self.image_path):
             os.mkdir(self.image_path)

@@ -12,12 +12,21 @@
                   v-if="child.type == 'p'"
                   :text_="child.text"
                   :ref_="child.ref"
+                  :id_="child.id"
                   :style_="child.style"
                   :class_="child.class"
-                  :highlightAllow="canCreateSpan"
+                  @addedSpan="onAddedSpan"
                   @textSelected="onTextSelected"
-                >
-                </ParagraphComp>
+                  @textHighlighted="$emit('textHighlighted')"
+                />
+
+                <ImageComp
+                  v-if="child.type == 'img'"
+                  :src_="child.image"
+                  :ref_="child.ref"
+                  :style_="child.style"
+                  :class_="child.class"
+                />
 
               </div>
             </div>
@@ -28,32 +37,37 @@
 <script>
 
 import ParagraphComp from './ParagraphComp.vue'
+import ImageComp from './ImageComp.vue'
 
 export default {
 
   name: 'MainDocComp',
 
   props: [
-    'docJSON',
-    'canCreateSpan'
+    'docJSON'
   ],
 
   mixins: [
   ],
 
   components: {
-    ParagraphComp
+    ParagraphComp,
+    ImageComp,
   },
 
   data () {
-    return {
-
+    return {      
+      sel: null,
+      selectedRange: null
     }
   },
 
   methods: {
     onTextSelected (selectedText, showModal) {
       this.$emit('textSelected', selectedText, showModal)
+    },
+    onAddedSpan (spanId) {
+      this.$emit('addedSpan', spanId)
     }
   },
 

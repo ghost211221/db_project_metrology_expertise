@@ -1,6 +1,7 @@
 <template>
   <p
     v-bind:ref="ref_"
+    :id="id_"
     v-bind:style="style_"
     v-bind:class="class_"
     v-on:mousedown="onmousedown"
@@ -24,6 +25,7 @@ export default {
   props: [
     'text_',
     'ref_',
+    'id_',
     'style_',
     'class_',
     'highlightAllow'
