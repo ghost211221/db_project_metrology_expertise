@@ -27,8 +27,7 @@ export default {
     'ref_',
     'id_',
     'style_',
-    'class_',
-    'highlightAllow'
+    'class_'
   ],
 
   data () {
