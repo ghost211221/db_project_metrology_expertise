@@ -30,6 +30,7 @@ import xml.etree.ElementTree as ET
 import time
 import re
 import os
+from base64 import b64encode
 
 
 class Docx2HtmlConverter():
@@ -405,6 +406,8 @@ class Docx2HtmlConverter():
         fr.write(image)
         fr.close()
 
+        # encoded_string = base64.b64encode(image)
+        encoded_string = b64encode(image).decode('utf-8')
         root['children'].append(
             {
                 'type': 'img',
@@ -412,7 +415,7 @@ class Docx2HtmlConverter():
                 'class': f'img img-responsive img-{self.img}',
                 'ref': f'{root["id"]} img-{self.img}',
                 'style': '',
-                'image': f'{self.image_path}/{file_name}'
+                'image': encoded_string
             }
         )
 

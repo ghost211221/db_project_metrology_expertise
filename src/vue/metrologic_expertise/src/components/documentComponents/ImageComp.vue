@@ -1,6 +1,6 @@
 <template>
   <img 
-    :src="src_"
+    :src="`data:image/png;base64,${src_}`"
     alt=""
     :ref="ref_"
     :style="style_"
