@@ -99,7 +99,6 @@ class Docx2HtmlConverter():
         """ проверка то parent в root существует """
         if 'children' in root:
             for child in root['children']:
-                print(child['id'], parent)
                 if child['id'] == parent:
                     return True
 
@@ -161,7 +160,6 @@ class Docx2HtmlConverter():
                             self.__add_paragraph(parent, block.text)
 
             elif isinstance(block, Table):
-                print('adding table')
                 self.__addNewTable(parent, 'w:tcBorders' in block._element.xml)
                 table_parent = self.__getParentById(parent['children'], f'{parent["id"]} table-{self.table}')
                 self.__prepare_table(block, table_parent)

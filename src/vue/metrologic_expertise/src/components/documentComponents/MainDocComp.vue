@@ -20,6 +20,19 @@
                   @textHighlighted="$emit('textHighlighted')"
                 />
 
+                <HeaderComp
+                  v-if="child.type.startsWith('h')"
+                  :type="child.type"
+                  :text_="child.text"
+                  :ref_="child.ref"
+                  :id_="child.id"
+                  :style_="child.style"
+                  :class_="child.class"
+                  @addedSpan="onAddedSpan"
+                  @textSelected="onTextSelected"
+                  @textHighlighted="$emit('textHighlighted')"
+                />
+
                 <ImageComp
                   v-if="child.type == 'img'"
                   :src_="child.image"
@@ -37,6 +50,7 @@
 <script>
 
 import ParagraphComp from './ParagraphComp.vue'
+import HeaderComp from './HeaderComp.vue'
 import ImageComp from './ImageComp.vue'
 
 export default {
@@ -53,6 +67,7 @@ export default {
   components: {
     ParagraphComp,
     ImageComp,
+    HeaderComp,
   },
 
   data () {
