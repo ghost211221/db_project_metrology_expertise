@@ -1,11 +1,11 @@
 <template>
   <img 
-    :src="require(src_)"
+    :src="src_"
     alt=""
     :ref="ref_"
     :style="style_"
     :class="class_"
-  >
+  />
 </template>
 
 <script>

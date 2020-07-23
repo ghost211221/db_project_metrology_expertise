@@ -86,7 +86,9 @@ export default {
       return this.showInitFileDialog
     },
     onTextSelected (selectedText, showModal) {
-      this.isModalVisible = showModal
+      if (showModal && this.textModalInit !== '') {
+        this.isModalVisible = showModal        
+      }
       this.textModalInit = selectedText
       this.textModalEdit = selectedText
     },
@@ -110,6 +112,7 @@ export default {
     },
     closeModal () {
       this.isModalVisible = false  
+      this.deleteSpan()
     },
     textHighlighted () {
     },
