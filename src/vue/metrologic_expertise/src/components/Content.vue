@@ -86,7 +86,7 @@ export default {
       return this.showInitFileDialog
     },
     onTextSelected (selectedText, showModal) {
-      if (showModal && this.textModalInit !== '') {
+      if (showModal && selectedText !== '') {
         this.isModalVisible = showModal        
       }
       this.textModalInit = selectedText
