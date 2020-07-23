@@ -8,6 +8,8 @@
 
               <div v-for="child in item.children" :key="child.ref">
 
+                <br v-if="child.type == 'br'"/>
+
                 <ParagraphComp
                   v-if="child.type == 'p'"
                   :text_="child.text"
@@ -22,6 +24,18 @@
 
                 <ListComp
                   v-if="child.type == 'ul'"
+                  :children_="child.children"
+                  :ref_="child.ref"
+                  :id_="child.id"
+                  :style_="child.style"
+                  :class_="child.class"
+                  @addedSpan="onAddedSpan"
+                  @textSelected="onTextSelected"
+                  @textHighlighted="$emit('textHighlighted')"
+                />
+
+                <TableComp
+                  v-if="child.type == 'table'"
                   :children_="child.children"
                   :ref_="child.ref"
                   :id_="child.id"
@@ -65,6 +79,7 @@ import ParagraphComp from './ParagraphComp.vue'
 import HeaderComp from './HeaderComp.vue'
 import ImageComp from './ImageComp.vue'
 import ListComp from './ListComp.vue'
+import TableComp from './TableComp.vue'
 
 export default {
 
@@ -82,6 +97,7 @@ export default {
     ImageComp,
     HeaderComp,
     ListComp,
+    TableComp,
   },
 
   data () {

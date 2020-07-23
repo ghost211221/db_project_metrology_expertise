@@ -89,7 +89,7 @@ import { SelectionsMixin } from './SelectionsMixin.js'
 
 export default {
 
-  name: 'ParagraphComp',
+  name: 'HeaderComp',
 
   mixins: [
       SelectionsMixin

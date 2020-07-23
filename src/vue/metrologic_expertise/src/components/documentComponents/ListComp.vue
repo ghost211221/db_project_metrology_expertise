@@ -16,16 +16,6 @@
       {{ child.text }}
     </li>
   </ul>
-
-<!--   <p
-    :ref="ref_"
-    :id="id_"
-    :style="style_"
-    :class="class_"
-    v-on:mousedown="onmousedown"
-    v-on:mouseup="onmouseup">
-    {{ text_ }}
-  </p> -->
 </template>
 
 <script>
@@ -34,7 +24,7 @@ import { SelectionsMixin } from './SelectionsMixin.js'
 
 export default {
 
-  name: 'ParagraphComp',
+  name: 'ListComp',
 
   mixins: [
       SelectionsMixin
