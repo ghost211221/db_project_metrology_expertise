@@ -154,7 +154,7 @@ class Docx2HtmlConverter():
                     else:
                         # modified to use a different outer_tag if a 'Heading' style is found in the original paragraph
                         if 'Heading' in tmp_heading_type:
-                            self.__add_heading(parent, block.text, tmp_heading_type.split(' ')[-1])
+                            self.__add_heading(parent, block, tmp_heading_type.split(' ')[-1])
 
                         else:
                             self.__add_paragraph(parent, block)
