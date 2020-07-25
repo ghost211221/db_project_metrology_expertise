@@ -138,7 +138,7 @@ class Docx2HtmlConverter():
                     if parent and not self.__chkParent(parent, f'page-{self.page} ul-{self.ul}'):
                         self.__addNewUlToParent(parent)
 
-                    self.list_items.append(block.text)
+                    self.list_items.append(block)
 
                 elif not block.text.strip():
                     # переводим пустые строку документа в пустые строки
@@ -217,13 +217,14 @@ class Docx2HtmlConverter():
     def __add_list_items(self, items, parent):
         if parent and 'children' in parent:
             for item in items:
+                style = self.__get_align(item)
                 parent['children'].append(
                     {
                         'type': 'li',
                         'class': f'listitem listitem-{self.li}',                
                         'ref': f'{parent["id"]} listitem-{self.li}',
-                        'style': '',
-                        'text': item
+                        'style': style,
+                        'text': item.text
                     }
                 )
 
@@ -266,7 +267,7 @@ class Docx2HtmlConverter():
                             if parent_ and not self.__chkParent(parent_, f'{root["id"]} ul-{self.ul}'):
                                 self.__addNewUlToParent(parent_)
 
-                            self.list_items.append(cblock.text)
+                            self.list_items.append(cblock)
 
                         elif not cblock.text.strip():
                             # переводим пустые строку документа в пустые строки
