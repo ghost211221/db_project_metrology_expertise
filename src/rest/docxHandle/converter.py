@@ -246,7 +246,7 @@ class Docx2HtmlConverter():
             parent = self.__getParentById(root['children'], f'{root["id"]} row-{self.t_row}')
 
             for cell in row.cells:
-                self.__addNewCell(parent)
+                self.__addNewCell(parent, 'w:tcBorders' in cblock._element.xml)
 
                 parent_ = self.__getParentById(parent['children'], f'{parent["id"]} cell-{self.t_cell}')
 
@@ -319,13 +319,14 @@ class Docx2HtmlConverter():
         )
 
     def __addNewTable(self, root, borders=True):
+        style = 'border-spacing: 0px;'
         root['children'].append(
             {
                 'type': 'table',
                 'id': f'{root["id"]} table-{self.table}',
                 'class': f'table table-{self.table}' + ' table-bordered' if borders else '',
                 'ref': f'{root["id"]} table-{self.table}',
-                'style': '',
+                'style': style,
                 'children': []
             }
         )
@@ -346,14 +347,16 @@ class Docx2HtmlConverter():
 
         self.t_cell = 1
 
-    def __addNewCell(self, root):
+    def __addNewCell(self, root, borders=True):
+        style = 'border: 1px solid black;' if borders else ''
+
         root['children'].append(
             {
                 'type': 'cell',
                 'id': f'{root["id"]} cell-{self.t_cell}',
                 'class': f'cell cell-{self.t_cell}',
                 'ref': f'{root["id"]} cell-{self.t_cell}',
-                'style': '',
+                'style': style,
                 'children': []
             }
         )
