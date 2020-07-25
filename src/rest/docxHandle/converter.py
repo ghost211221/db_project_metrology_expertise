@@ -157,7 +157,7 @@ class Docx2HtmlConverter():
                             self.__add_heading(parent, block.text, tmp_heading_type.split(' ')[-1])
 
                         else:
-                            self.__add_paragraph(parent, block.text)
+                            self.__add_paragraph(parent, block)
 
             elif isinstance(block, Table):
                 self.__addNewTable(parent, 'w:tcBorders' in block._element.xml)
@@ -282,7 +282,7 @@ class Docx2HtmlConverter():
                             else:
                                 # modified to use a different outer_tag if a 'Heading' style is found in the original paragraph
                                 if 'Heading' in tmp_heading_type:
-                                    self.__add_heading(parent_, cblock.text, tmp_heading_type.split(' ')[-1])
+                                    self.__add_heading(parent_, cblock, tmp_heading_type.split(' ')[-1])
 
                                 else:
                                     self.__add_paragraph(parent_, cblock.text)
@@ -419,15 +419,29 @@ class Docx2HtmlConverter():
 
         self.img += 1
 
-    def __add_paragraph(self, root, text):
+    def __add_paragraph(self, root, block):
+        style = ''
+        if 'w:jc w:val="center"' in block._element.xml:
+            style = 'text-align: center;'
+
+        elif 'w:jc w:val="left"' in block._element.xml:
+            style = 'text-align: left;'
+            
+        elif 'w:jc w:val="right"' in block._element.xml:
+            style = 'text-align: right;'
+            
+        elif 'w:jc w:val="both"' in block._element.xml:
+            style = 'text-align: justify;'
+
+
         root['children'].append(
             {
                 'type': 'p',
                 'id': f'{root["id"]} paragraph-{self.paragraph}',
                 'class': f'paragraph paragraph-{self.paragraph}',
                 'ref': f'{root["id"]} paragraph-{self.paragraph}',
-                'style': '',
-                'text': text
+                'style': style,
+                'text': block.text
             }
         )
 
