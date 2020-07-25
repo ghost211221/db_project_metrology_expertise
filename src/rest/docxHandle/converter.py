@@ -393,7 +393,7 @@ class Docx2HtmlConverter():
                 'class': f'h{type} h{type}-{self.header}',
                 'ref': f'{root["id"]} header-{self.header}',
                 'style': style,
-                'text': text
+                'text': block.text
             }
         )
 
