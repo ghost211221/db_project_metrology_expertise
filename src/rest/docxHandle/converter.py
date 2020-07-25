@@ -246,7 +246,7 @@ class Docx2HtmlConverter():
             parent = self.__getParentById(root['children'], f'{root["id"]} row-{self.t_row}')
 
             for cell in row.cells:
-                self.__addNewCell(parent, 'w:tcBorders' in cblock._element.xml)
+                self.__addNewCell(parent, 'w:tcBorders' in cell._element.xml)
 
                 parent_ = self.__getParentById(parent['children'], f'{parent["id"]} cell-{self.t_cell}')
 
