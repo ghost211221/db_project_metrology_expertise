@@ -241,7 +241,7 @@ class Docx2HtmlConverter():
 
         for row in table.rows:
 
-            self.__addNewRow(root)
+            self.__addNewRow(root, row)
 
             parent = self.__getParentById(root['children'], f'{root["id"]} row-{self.t_row}')
 
@@ -333,14 +333,17 @@ class Docx2HtmlConverter():
 
         self.t_row = 1
 
-    def __addNewRow(self, root):
+    def __addNewRow(self, root, block):
+        height = block.height / 914400 / 72
+        style = f'height: {height};'
+
         root['children'].append(
             {
                 'type': 'row',
                 'id': f'{root["id"]} row-{self.t_row}',
                 'class': f'row row-{self.t_row}',
                 'ref': f'{root["id"]} row-{self.t_row}',
-                'style': '',
+                'style': style,
                 'children': []
             }
         )
@@ -352,9 +355,8 @@ class Docx2HtmlConverter():
 
         # calc cell width in pt
         width = block.width / 914400 / 72
-        height = block.height / 914400 / 72
 
-        style += f'width: {width}; height: {height}'
+        style += f'width: {width};'
 
         root['children'].append(
             {
