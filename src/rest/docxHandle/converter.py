@@ -334,8 +334,7 @@ class Docx2HtmlConverter():
         self.t_row = 1
 
     def __addNewRow(self, root, block):
-        height = block.height / 914400 / 72
-        style = f'height: {height};'
+        style = ''
 
         root['children'].append(
             {
