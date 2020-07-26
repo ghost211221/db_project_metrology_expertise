@@ -130,6 +130,7 @@ class Docx2HtmlConverter():
 
             elif isinstance(block, Paragraph):
                 # self.__detectPageBreakBlock(block)
+                # print(block._element.xml)
                 tmp_heading_type = self.__get_heading_type(block)
 
                 if re.match(r"List\sParagraph", tmp_heading_type) or 'w:ilvl' in block._element.xml and 'w:numId w:val="2"' in block._element.xml \
@@ -238,6 +239,7 @@ class Docx2HtmlConverter():
     def __prepare_table(self, block, root):
         """ Modified to treat cell content as a set of blocks to process  """
         table = block
+        # print(block._element.xml)
 
         for row in table.rows:
 
@@ -450,8 +452,8 @@ if __name__ == '__main__':
 
     converter = Docx2HtmlConverter()
 
-    # converter.convert('./', 'file-sample_100kB.docx')
-    converter.convert('./', 'init_document.docx')
+    converter.convert('./', 'file-sample_100kB.docx')
+    # converter.convert('./', 'init_document.docx')
 
     # pp.pprint(converter.getJSON())
     # doc = Document('/home/ghost/design/programming/python/geekbrains/group_project/db_project_metrology_expertise/files/init_document.docx')

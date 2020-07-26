@@ -246,7 +246,7 @@ class Docx2HtmlConverter():
             parent = self.__getParentById(root['children'], f'{root["id"]} row-{self.t_row}')
 
             for cell in row.cells:
-                self.__addNewCell(parent, 'w:tcBorders' in cell._element.xml)
+                self.__addNewCell(parent, cell, 'w:tcBorders' in cell._element.xml)
 
                 parent_ = self.__getParentById(parent['children'], f'{parent["id"]} cell-{self.t_cell}')
 
@@ -347,8 +347,14 @@ class Docx2HtmlConverter():
 
         self.t_cell = 1
 
-    def __addNewCell(self, root, borders=True):
+    def __addNewCell(self, root, block, borders=True):
         style = 'border: 1px solid black;' if borders else ''
+
+        # calc cell width in pt
+        width = block.width / 914400 / 72
+        height = block.height / 914400 / 72
+
+        style += f'width: {width}; height: {height}'
 
         root['children'].append(
             {
