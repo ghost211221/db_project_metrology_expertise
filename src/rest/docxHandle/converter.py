@@ -218,6 +218,7 @@ class Docx2HtmlConverter():
         if parent and 'children' in parent:
             for item in items:
                 style = self.__get_align(item)
+                style += self.__get_font_size(item)
                 parent['children'].append(
                     {
                         'type': 'li',
@@ -396,6 +397,7 @@ class Docx2HtmlConverter():
 
     def __add_heading(self, root, block, type):
         style = self.__get_align(block)
+        style += self.__get_font_size(block)
 
         root['children'].append(
             {
@@ -434,6 +436,7 @@ class Docx2HtmlConverter():
 
     def __add_paragraph(self, root, block):
         style = self.__get_align(block)
+        style += self.__get_font_size(block)
 
         root['children'].append(
             {
@@ -463,6 +466,10 @@ class Docx2HtmlConverter():
             style = 'text-align: justify;'
 
         return style
+
+    def __get_font_size(self, block):
+
+        return f'font-size: {block.style.font.size / 12700}pt;'
 
 if __name__ == '__main__':
 
