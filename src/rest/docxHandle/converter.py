@@ -468,8 +468,16 @@ class Docx2HtmlConverter():
         return style
 
     def __get_font_size(self, block):
+        font_size = None
 
-        return f'font-size: {block.style.font.size / 12700}pt;'
+        if block.style and block.style.font and block.style.font.size:
+            font_size = block.style.font.size / 12700.0
+
+        elif re.search('(?<=<w:sz w:val=\")[0-9]+', block._element.xml):
+            font_size = re.search('(?<=<w:sz w:val=\")[0-9]+', block._element.xml)[0]
+
+
+        return f'font-size: {font_size}pt;' if font_size else ''
 
 if __name__ == '__main__':
 
