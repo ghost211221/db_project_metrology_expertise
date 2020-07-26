@@ -355,7 +355,7 @@ class Docx2HtmlConverter():
         # calc cell width in pt
         width = block.width / 914400 / 72
 
-        style += f'width: {width};'
+        style += f'width: {width}pt;'
 
         root['children'].append(
             {
