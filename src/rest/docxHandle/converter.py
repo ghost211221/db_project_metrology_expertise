@@ -356,9 +356,10 @@ class Docx2HtmlConverter():
         style = 'border: 1px solid black;' if borders else ''
 
         # calc cell width in pt
-        width = block.width / 12700
+        if block.width:
+            width = block.width / 12700
 
-        style += f'width: {width}pt;'
+            style += f'width: {width}pt;'
 
         root['children'].append(
             {
