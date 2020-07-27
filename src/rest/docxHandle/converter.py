@@ -219,6 +219,8 @@ class Docx2HtmlConverter():
             for item in items:
                 style = self.__get_align(item)
                 style += self.__get_font_size(item)
+                style += self.__get_vertical_spacing(item)
+
                 parent['children'].append(
                     {
                         'type': 'li',
@@ -398,6 +400,7 @@ class Docx2HtmlConverter():
     def __add_heading(self, root, block, type):
         style = self.__get_align(block)
         style += self.__get_font_size(block)
+        style += self.__get_vertical_spacing(block)
 
         root['children'].append(
             {
@@ -437,6 +440,7 @@ class Docx2HtmlConverter():
     def __add_paragraph(self, root, block):
         style = self.__get_align(block)
         style += self.__get_font_size(block)
+        style += self.__get_vertical_spacing(block)
 
         root['children'].append(
             {
@@ -467,6 +471,49 @@ class Docx2HtmlConverter():
 
         return style
 
+    def __get_vertical_spacing(self, block):
+        """ вертикальные отступы до и после параграфа, заголовка, списка """
+
+        style = ''
+
+        spacing_line = re.search(r'<w:spacing [a-z0-9\.\:\=\" ]+/>', block._element.xml)
+
+        if spacing_line:
+            before = re.search(r'(?<=w:before=")[0-9\.]+', spacing_line)
+            after = re.search(r'(?<=w:after=")[0-9\.]+', spacing_line)
+
+            if before:
+                style += f'margin-top: {int(before[0])/20}pt;'
+
+            if after:
+                style += f'margin-bottom: {int(after[0])/20}pt;'
+
+        return style
+
+    def __get_indentation(self, block):
+        """ горизонтальные отступы до и после параграфа, заголовка, списка, красная строка """
+
+        style = ''
+
+        ind_line = re.search(r'<w:ind [a-z0-9\.\:\=\" ]+/>', block._element.xml)
+
+        if ind_line:
+            start = re.search(r'(?<=w:start=")[0-9\.]+', ind_line)
+            end = re.search(r'(?<=w:end=")[0-9\.]+', ind_line)
+            first_line = re.search(r'(?<=w:firstLine=")[0-9\.]+', ind_line) or re.search(r'(?<=w:hanging=")[0-9\.]+', ind_line)
+
+            if start:
+                style += f'margin-left: {int(start[0])/12700}pt;'
+
+            if end:
+                style += f'margin-right: {int(end[0])/12700}pt;'
+
+            if first_line:
+                style += f'text-indent: {int(first_line[0])/12700}pt;'
+
+        return style
+
+
     def __get_font_size(self, block):
         font_size = None
 
@@ -474,7 +521,7 @@ class Docx2HtmlConverter():
             font_size = block.style.font.size / 12700.0
 
         elif re.search('(?<=<w:sz w:val=\")[0-9]+', block._element.xml):
-            font_size = re.search('(?<=<w:sz w:val=\")[0-9]+', block._element.xml)[0]
+            font_size = int(re.search('(?<=<w:sz w:val=\")[0-9]+', block._element.xml)[0]) / 2
 
 
         return f'font-size: {font_size}pt;' if font_size else ''
