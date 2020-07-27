@@ -479,8 +479,8 @@ class Docx2HtmlConverter():
         spacing_line = re.search(r'<w:spacing [a-z0-9\.\:\=\" ]+/>', block._element.xml)
 
         if spacing_line:
-            before = re.search(r'(?<=w:before=")[0-9\.]+', spacing_line)
-            after = re.search(r'(?<=w:after=")[0-9\.]+', spacing_line)
+            before = re.search(r'(?<=w:before=")[0-9\.]+', spacing_line[0])
+            after = re.search(r'(?<=w:after=")[0-9\.]+', spacing_line[0])
 
             if before:
                 style += f'margin-top: {int(before[0])/20}pt;'
@@ -498,9 +498,9 @@ class Docx2HtmlConverter():
         ind_line = re.search(r'<w:ind [a-z0-9\.\:\=\" ]+/>', block._element.xml)
 
         if ind_line:
-            start = re.search(r'(?<=w:start=")[0-9\.]+', ind_line)
-            end = re.search(r'(?<=w:end=")[0-9\.]+', ind_line)
-            first_line = re.search(r'(?<=w:firstLine=")[0-9\.]+', ind_line) or re.search(r'(?<=w:hanging=")[0-9\.]+', ind_line)
+            start = re.search(r'(?<=w:start=")[0-9\.]+', ind_line[0])
+            end = re.search(r'(?<=w:end=")[0-9\.]+', ind_line[0])
+            first_line = re.search(r'(?<=w:firstLine=")[0-9\.]+', ind_line[0]) or re.search(r'(?<=w:hanging=")[0-9\.]+', ind_line[0])
 
             if start:
                 style += f'margin-left: {int(start[0])/12700}pt;'
