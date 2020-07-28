@@ -411,7 +411,7 @@ class Docx2HtmlConverter():
 
     def __addNewCell(self, root, block, borders=True):
         style = 'border: 1px solid black;' if borders else ''
-        colspan = 0
+        colspan = 1
 
         if  '<w:gridSpan w:val' in block._element.xml:
             colspan = int(re.search(r'(?<=<w:gridSpan w:val=")[0-9\.]+', block._element.xml)[0])
@@ -429,7 +429,7 @@ class Docx2HtmlConverter():
                 'class': f'cell cell-{self.t_cell}',
                 'ref': f'{root["id"]} cell-{self.t_cell}',
                 'colspan': colspan,
-                'rowspan': 0,
+                'rowspan': 1,
                 'style': style,
                 'children': []
             }
