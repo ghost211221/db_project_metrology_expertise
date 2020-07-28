@@ -414,7 +414,7 @@ class Docx2HtmlConverter():
         colspan = 0
 
         if  '<w:gridSpan w:val' in block._element.xml:
-            colspan = int(re.search(r'(?<=<w:gridSpan w:val=")[0-9\.]+', )[0])
+            colspan = int(re.search(r'(?<=<w:gridSpan w:val=")[0-9\.]+', block._element.xml)[0])
 
         # calc cell width in pt
         if block.width:
