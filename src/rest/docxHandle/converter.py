@@ -65,6 +65,9 @@ class Docx2HtmlConverter():
         self.li = 1
         self.br = 1
 
+        self.matrix = []
+
+
         # сразу добавляем первую страницу
         self.__addNewPage()
 
@@ -242,13 +245,23 @@ class Docx2HtmlConverter():
         """ Modified to treat cell content as a set of blocks to process  """
         table = block
 
+        self.matrix = []
+
         for row in table.rows:
+            row_ = []
 
             self.__addNewRow(root, row)
 
             parent = self.__getParentById(root['children'], f'{root["id"]} row-{self.t_row}')
 
             for cell in row.cells:
+                if '<w:vMerge w:val="restart"/>' in cell._element.xml:
+                    row_.append(1)
+                elif '<w:vMerge w:val="continue"/>' in cell._element.xml:
+                    row_.append(2)
+                else:
+                    row_.append(0)
+                    
                 self.__addNewCell(parent, cell, 'w:tcBorders' in cell._element.xml)
 
                 parent_ = self.__getParentById(parent['children'], f'{parent["id"]} cell-{self.t_cell}')
@@ -298,10 +311,54 @@ class Docx2HtmlConverter():
 
                 self.t_cell += 1
 
+            self.matrix.append(row_)
 
-            self.t_row += 1
+            self.t_row += 1        
+
+        while self.__matrix_sum() > 0:
+            span = self.__get_span()
+            if span:
+                self.__add_span(root, span)
 
         self.table += 1
+
+    def __matrix_sum(self):
+        sum_ = 0
+        for row in self.matrix:
+            for cell in row:
+                sum_ += cell
+
+        return sum_
+
+    def __get_span(self):
+        rown = 0
+        for row in self.matrix:
+            coln = 0
+            for cell in row:
+                if cell == 1:
+                    span = [rown, coln, 1]
+                    row_ = rown
+
+                    while row_ <= len(self.matrix)-1 and (self.matrix[row_][coln] == 1 or self.matrix[row_][coln] == 2):
+                        span[2] += 1
+                        self.matrix[row_][coln] = 0
+                        row_ += 1
+
+                    span[2] -= 1
+
+                    return span
+
+                coln += 1
+            rown += 1
+
+    def __add_span(self, root, span):
+        for row in root['children']:
+            if f'row-{span[0]+1}' in row['id']:
+                # нашли строку, ищем ячейку
+                for cell in row['children']:
+                    if f'cell-{span[1]+1}' in cell['id']:
+                        # нашли ячейку
+                        cell['rowspan'] = span[2]
                 
 
     def __get_block_style(self, block):
@@ -354,6 +411,10 @@ class Docx2HtmlConverter():
 
     def __addNewCell(self, root, block, borders=True):
         style = 'border: 1px solid black;' if borders else ''
+        colspan = 0
+
+        if  '<w:gridSpan w:val' in block._element.xml:
+            colspan = int(re.search(r'(?<=<w:gridSpan w:val=")[0-9\.]+', )[0])
 
         # calc cell width in pt
         if block.width:
@@ -367,6 +428,8 @@ class Docx2HtmlConverter():
                 'id': f'{root["id"]} cell-{self.t_cell}',
                 'class': f'cell cell-{self.t_cell}',
                 'ref': f'{root["id"]} cell-{self.t_cell}',
+                'colspan': colspan,
+                'rowspan': 0,
                 'style': style,
                 'children': []
             }
