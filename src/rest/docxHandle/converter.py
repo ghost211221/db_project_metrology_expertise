@@ -67,6 +67,9 @@ class Docx2HtmlConverter():
 
         self.matrix = []
 
+        self.colspan = 0
+        self.colspan_ = 0
+
 
         # сразу добавляем первую страницу
         self.__addNewPage()
@@ -249,6 +252,8 @@ class Docx2HtmlConverter():
 
         for row in table.rows:
             row_ = []
+            self.colspan = 0
+            self.colspan_ = 0
 
             self.__addNewRow(root, row)
 
@@ -415,6 +420,17 @@ class Docx2HtmlConverter():
 
         if  '<w:gridSpan w:val' in block._element.xml:
             colspan = int(re.search(r'(?<=<w:gridSpan w:val=")[0-9\.]+', block._element.xml)[0])
+            self.colspan = int(re.search(r'(?<=<w:gridSpan w:val=")[0-9\.]+', block._element.xml)[0])
+            self.colspan_ = int(re.search(r'(?<=<w:gridSpan w:val=")[0-9\.]+', block._element.xml)[0])
+
+        if self.colspan_ == 0:
+            colspan = 1
+
+        elif self.colspan_ < self.colspan:
+            self.colspan_ -= 1
+            colspan = 0
+
+
 
         # calc cell width in pt
         if block.width:
