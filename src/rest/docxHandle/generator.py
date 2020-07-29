@@ -76,7 +76,7 @@ class ResultTableGenerator():
 
                 else:
                     if col == 0 and diff.get('fistEl'):
-                        idxClass = ' '.join(re.search(r'[A-Za-z\-0-9]+', diff['fistEl']))
+                        idxClass = ' '.join(re.findall(r'[A-Za-z]+-[0-9]+', diff['fistEl']))
                         cell.text = idxClass
 
                     elif col == 1 and diff.get('initText'):
