@@ -67,9 +67,6 @@ class Docx2HtmlConverter():
 
         self.matrix = []
 
-        self.colspan = 0
-        self.colspan_ = 0
-
 
         # сразу добавляем первую страницу
         self.__addNewPage()
@@ -252,8 +249,6 @@ class Docx2HtmlConverter():
 
         for row in table.rows:
             row_ = []
-            self.colspan = 0
-            self.colspan_ = 0
 
             self.__addNewRow(root, row)
 
@@ -325,6 +320,9 @@ class Docx2HtmlConverter():
             if span:
                 self.__add_span(root, span)
 
+        self.__clear_span_cells(root)
+        self.__clear_span_cells(root)
+
         self.table += 1
 
     def __matrix_sum(self):
@@ -364,6 +362,38 @@ class Docx2HtmlConverter():
                     if f'cell-{span[1]+1}' in cell['id']:
                         # нашли ячейку
                         cell['rowspan'] = span[2]
+
+    def __clear_span_cells(self, root):
+        row_idx = 0
+        for row in root['children']:
+            col_idx = 0
+            for cell in row['children']:
+                if cell['rowspan'] != 1:
+                    span = cell['rowspan'] - 1
+                    print(f'vert: {row_idx}-{col_idx}-{cell["rowspan"]}')
+                    while span != 0:
+                        for cell_ in root['children'][row_idx+span]['children']:                            
+                            if f'cell-{col_idx+1}' in cell_['id']:
+                                cell_idx = root['children'][row_idx+span]['children'].index(cell_)
+                                root['children'][row_idx+span]['children'].pop(cell_idx)
+
+                        span -= 1
+
+                elif cell['colspan'] != 1:
+                    print(f'hor: {row_idx}-{col_idx}-{cell["colspan"]}')
+                    span = 1
+                    while span != cell['colspan']:
+                        for cell_ in row['children']:
+                            if f'cell-{col_idx+span+1}' in cell_['id']:                                
+                                print(cell_['id'])
+                                cell_idx = row['children'].index(cell_)
+                                row['children'].pop(cell_idx)
+
+                        span += 1
+
+
+                col_idx += 1
+            row_idx += 1
                 
 
     def __get_block_style(self, block):
@@ -420,17 +450,6 @@ class Docx2HtmlConverter():
 
         if  '<w:gridSpan w:val' in block._element.xml:
             colspan = int(re.search(r'(?<=<w:gridSpan w:val=")[0-9\.]+', block._element.xml)[0])
-            self.colspan = int(re.search(r'(?<=<w:gridSpan w:val=")[0-9\.]+', block._element.xml)[0])
-            self.colspan_ = int(re.search(r'(?<=<w:gridSpan w:val=")[0-9\.]+', block._element.xml)[0])
-
-        if self.colspan_ == 0:
-            colspan = 1
-
-        elif self.colspan_ < self.colspan:
-            self.colspan_ -= 1
-            colspan = 0
-
-
 
         # calc cell width in pt
         if block.width:
